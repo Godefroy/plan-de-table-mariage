@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import type { Guest } from '../../types';
-import { useAppDispatch } from '../../state/AppContext';
-import { LanguageEditor } from './LanguageEditor';
+import { useAppDispatch, useAppState } from '../../state/AppContext';
 import styles from './GuestRow.module.css';
 
 export function GuestRow({ guest }: { guest: Guest }) {
+  const { languages } = useAppState();
   const dispatch = useAppDispatch();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(guest.name);
-  const [showLangs, setShowLangs] = useState(false);
 
   const handleSave = () => {
     const name = editName.trim();
@@ -20,6 +19,14 @@ export function GuestRow({ guest }: { guest: Guest }) {
 
   const handleDelete = () => {
     dispatch({ type: 'REMOVE_GUEST', payload: { id: guest.id } });
+  };
+
+  const toggleLang = (langName: string) => {
+    const has = guest.languages.includes(langName);
+    const updated = has
+      ? guest.languages.filter((l) => l !== langName)
+      : [...guest.languages, langName];
+    dispatch({ type: 'SET_GUEST_LANGUAGES', payload: { id: guest.id, languages: updated } });
   };
 
   return (
@@ -42,11 +49,18 @@ export function GuestRow({ guest }: { guest: Guest }) {
             {guest.name}
           </span>
         )}
-        <span className={styles.langBadge} onClick={() => setShowLangs(!showLangs)}>
-          {guest.languages.length > 0
-            ? guest.languages.map((l) => l.language).join(', ')
-            : '+ langues'}
-        </span>
+        <div className={styles.flags}>
+          {languages.map((lang) => (
+            <button
+              key={lang.name}
+              className={`${styles.flagBtn} ${guest.languages.includes(lang.name) ? styles.flagActive : ''}`}
+              onClick={() => toggleLang(lang.name)}
+              title={lang.name}
+            >
+              {lang.flag}
+            </button>
+          ))}
+        </div>
         <div className={styles.actions}>
           <button onClick={() => setEditing(true)} className={styles.editBtn} title="Modifier">
             ✏
@@ -56,7 +70,6 @@ export function GuestRow({ guest }: { guest: Guest }) {
           </button>
         </div>
       </div>
-      {showLangs && <LanguageEditor guest={guest} />}
     </div>
   );
 }

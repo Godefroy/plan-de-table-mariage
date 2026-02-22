@@ -1,9 +1,13 @@
-import { useRef } from 'react';
-import { useAppDispatch, useAppState } from '../../state/AppContext';
-import { exportToJson, importFromJson } from '../../state/persistence';
-import styles from './ImportExport.module.css';
+import { useRef } from "react";
+import { useAppDispatch, useAppState } from "../../state/AppContext";
+import { exportToJson, importFromJson } from "../../state/persistence";
+import styles from "./ImportExport.module.css";
 
-export function ImportExport() {
+export function ImportExport({
+  onOpenSettings,
+}: {
+  onOpenSettings: () => void;
+}) {
   const state = useAppState();
   const dispatch = useAppDispatch();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -25,15 +29,15 @@ export function ImportExport() {
       const text = reader.result as string;
       const imported = importFromJson(text);
       if (imported) {
-        dispatch({ type: 'IMPORT_STATE', payload: imported });
+        dispatch({ type: "IMPORT_STATE", payload: imported });
       } else {
-        alert('Fichier JSON invalide.');
+        alert("Fichier JSON invalide.");
       }
     };
     reader.readAsText(file);
 
     // Reset input
-    e.target.value = '';
+    e.target.value = "";
   };
 
   return (
@@ -49,8 +53,11 @@ export function ImportExport() {
         type="file"
         accept=".json"
         onChange={handleFileChange}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
+      <button onClick={onOpenSettings} className={styles.btn}>
+        Paramètres
+      </button>
     </div>
   );
 }

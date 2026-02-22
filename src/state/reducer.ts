@@ -5,12 +5,18 @@ function normalizeIds(id1: string, id2: string): [string, string] {
   return id1 < id2 ? [id1, id2] : [id2, id1];
 }
 
+export const DEFAULT_LANGUAGES = [
+  { name: 'Français', flag: '🇫🇷' },
+  { name: 'English', flag: '🇬🇧' },
+];
+
 export const defaultState: AppState = {
   guests: [],
   affinities: [],
   couples: [],
   tables: [],
   assignments: [],
+  languages: DEFAULT_LANGUAGES,
 };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -179,6 +185,27 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CLEAR_ASSIGNMENTS': {
       return { ...state, assignments: [] };
+    }
+
+    case 'ADD_LANGUAGE': {
+      const exists = state.languages.some(
+        (l) => l.name.toLowerCase() === action.payload.name.toLowerCase()
+      );
+      if (exists) return state;
+      return { ...state, languages: [...state.languages, action.payload] };
+    }
+
+    case 'REMOVE_LANGUAGE': {
+      const langName = action.payload.name;
+      return {
+        ...state,
+        languages: state.languages.filter((l) => l.name !== langName),
+        guests: state.guests.map((g) => ({
+          ...g,
+          languages: g.languages.filter((l) => l !== langName),
+        })),
+        assignments: [],
+      };
     }
 
     case 'IMPORT_STATE': {

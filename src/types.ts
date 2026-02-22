@@ -1,14 +1,12 @@
-export type LanguageLevel = 'native' | 'fluent' | 'intermediate' | 'basic';
-
-export interface LanguageSkill {
-  language: string;
-  level: LanguageLevel;
+export interface Language {
+  name: string;
+  flag: string;
 }
 
 export interface Guest {
   id: string;
   name: string;
-  languages: LanguageSkill[];
+  languages: string[];
 }
 
 export type AffinityScore = -3 | -2 | -1 | 0 | 1 | 2 | 3;
@@ -45,4 +43,5 @@ export interface AppState {
   couples: Couple[];
   tables: Table[];
   assignments: SeatAssignment[];
+  languages: Language[];
 }
