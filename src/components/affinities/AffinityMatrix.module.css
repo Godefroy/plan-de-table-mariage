@@ -1,0 +1,123 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.empty {
+  color: #999;
+  text-align: center;
+  padding: 32px;
+  font-style: italic;
+}
+
+.hint {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.legendNeg {
+  background: #fecaca;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.legendZero {
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.legendPos {
+  background: #bbf7d0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.tableWrapper {
+  overflow: auto;
+  max-height: 70vh;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  min-width: fit-content;
+}
+
+.matrix th,
+.matrix td {
+  padding: 0;
+}
+
+.headerCell {
+  height: 100px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: white;
+  min-width: 40px;
+}
+
+.cornerCell {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  background: white;
+}
+
+.headerText {
+  display: block;
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: rotate(-45deg);
+  transform-origin: bottom left;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.rowHeader {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 4px 10px;
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 12px;
+  background: #fafafa;
+}
+
+.cell {
+  text-align: center;
+  min-width: 40px;
+  height: 36px;
+}
+
+.diagonal {
+  color: #ccc;
+}
+
+.mirror {
+  color: #999;
+  font-size: 11px;
+}

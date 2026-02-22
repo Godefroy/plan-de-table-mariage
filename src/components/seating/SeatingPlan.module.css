@@ -1,0 +1,30 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.tableCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.tableName {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #374151;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 48px;
+  font-style: italic;
+  font-size: 15px;
+}
