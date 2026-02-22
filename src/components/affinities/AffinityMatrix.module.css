@@ -1,6 +1,7 @@
 .container {
-  max-width: 100%;
-  margin: 0 auto;
+  width: calc(100vw - 32px);
+  margin-left: calc(-50vw + 50% + 16px);
+  padding: 0 16px;
 }
 
 .empty {
@@ -49,7 +50,6 @@
 
 .tableWrapper {
   overflow: auto;
-  max-height: 70vh;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
@@ -58,33 +58,38 @@
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
-  min-width: fit-content;
+  width: 100%;
+  table-layout: fixed;
 }
 
-.matrix th,
-.matrix td {
+.matrix .cell {
   padding: 0;
 }
 
-.headerCell {
-  height: 100px;
+.columnHeaders {
+  display: flex;
+  align-items: flex-end;
+  background: #fafafa;
   position: sticky;
   top: 0;
   z-index: 2;
-  background: white;
-  min-width: 40px;
+  overflow: hidden;
 }
 
-.cornerCell {
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  background: white;
+.headerSpacer {
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.colHeader {
+  width: 40px;
+  min-width: 40px;
+  flex-shrink: 0;
+  position: relative;
+  height: 100px;
 }
 
 .headerText {
-  display: block;
   position: absolute;
   bottom: 4px;
   left: 50%;
@@ -99,16 +104,18 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 0;
   text-align: right;
   white-space: nowrap;
   font-weight: 500;
   font-size: 12px;
   background: #fafafa;
+  width: 200px;
 }
 
 .cell {
   text-align: center;
+  width: 40px;
   min-width: 40px;
   height: 36px;
 }
@@ -120,4 +127,23 @@
 .mirror {
   color: #999;
   font-size: 11px;
+}
+
+.rowHeaderHighlight {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.colHeaderHighlight .headerText {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.coupleHeart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 34px;
+  font-size: 16px;
 }

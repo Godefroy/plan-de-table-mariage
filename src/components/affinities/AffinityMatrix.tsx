@@ -1,14 +1,37 @@
+import { useRef, useState } from 'react';
 import { useAppState } from '../../state/AppContext';
 import { AffinityCell } from './AffinityCell';
 import styles from './AffinityMatrix.module.css';
 
 export function AffinityMatrix() {
-  const { guests, affinities } = useAppState();
+  const { guests, affinities, couples } = useAppState();
+  const [hovered, setHovered] = useState<{ row: number; col: number } | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    if (headerRef.current && wrapperRef.current) {
+      headerRef.current.scrollLeft = wrapperRef.current.scrollLeft;
+    }
+  };
 
   const affinityMap = new Map<string, number>();
   for (const a of affinities) {
     affinityMap.set(`${a.guestId1}|${a.guestId2}`, a.score);
   }
+
+  const coupleSet = new Set<string>();
+  for (const c of couples) {
+    const key = c.guestId1 < c.guestId2
+      ? `${c.guestId1}|${c.guestId2}`
+      : `${c.guestId2}|${c.guestId1}`;
+    coupleSet.add(key);
+  }
+
+  const isCouple = (id1: string, id2: string): boolean => {
+    const key = id1 < id2 ? `${id1}|${id2}` : `${id2}|${id1}`;
+    return coupleSet.has(key);
+  };
 
   const getScore = (id1: string, id2: string): number => {
     const key = id1 < id2 ? `${id1}|${id2}` : `${id2}|${id1}`;
@@ -38,36 +61,40 @@ export function AffinityMatrix() {
           <span className={styles.legendPos}>+3</span> Très proches
         </span>
       </p>
-      <div className={styles.tableWrapper}>
+      <div ref={headerRef} className={styles.columnHeaders}>
+        <div className={styles.headerSpacer}></div>
+        {guests.map((g, j) => (
+          <div
+            key={g.id}
+            className={`${styles.colHeader}${hovered?.col === j ? ` ${styles.colHeaderHighlight}` : ''}`}
+          >
+            <span className={styles.headerText}>{g.name}</span>
+          </div>
+        ))}
+      </div>
+      <div ref={wrapperRef} className={styles.tableWrapper} onScroll={handleScroll}>
         <table className={styles.matrix}>
-          <thead>
-            <tr>
-              <th className={styles.cornerCell}></th>
-              {guests.map((g) => (
-                <th key={g.id} className={styles.headerCell}>
-                  <span className={styles.headerText}>{g.name}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
           <tbody>
             {guests.map((g1, i) => (
               <tr key={g1.id}>
-                <td className={styles.rowHeader}>{g1.name}</td>
+                <td className={`${styles.rowHeader}${hovered?.row === i ? ` ${styles.rowHeaderHighlight}` : ''}`}>{g1.name}</td>
                 {guests.map((g2, j) => (
-                  <td key={g2.id} className={styles.cell}>
-                    {j > i ? (
+                  <td
+                    key={g2.id}
+                    className={styles.cell}
+                    onMouseEnter={() => setHovered({ row: i, col: j })}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    {j === i ? (
+                      <span className={styles.diagonal}>-</span>
+                    ) : isCouple(g1.id, g2.id) ? (
+                      <span className={styles.coupleHeart} title="Couple">❤️</span>
+                    ) : (
                       <AffinityCell
                         guestId1={g1.id}
                         guestId2={g2.id}
                         score={getScore(g1.id, g2.id)}
                       />
-                    ) : j === i ? (
-                      <span className={styles.diagonal}>-</span>
-                    ) : (
-                      <span className={styles.mirror}>
-                        {getScore(g1.id, g2.id) || ''}
-                      </span>
                     )}
                   </td>
                 ))}
