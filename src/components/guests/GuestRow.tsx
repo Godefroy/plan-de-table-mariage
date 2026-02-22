@@ -45,7 +45,7 @@ export function GuestRow({ guest }: { guest: Guest }) {
             autoFocus
           />
         ) : (
-          <span className={styles.name} onDoubleClick={() => setEditing(true)}>
+          <span className={styles.name} onClick={() => setEditing(true)}>
             {guest.name}
           </span>
         )}
@@ -62,9 +62,6 @@ export function GuestRow({ guest }: { guest: Guest }) {
           ))}
         </div>
         <div className={styles.actions}>
-          <button onClick={() => setEditing(true)} className={styles.editBtn} title="Modifier">
-            ✏
-          </button>
           <button onClick={handleDelete} className={styles.deleteBtn} title="Supprimer">
             ✕
           </button>
