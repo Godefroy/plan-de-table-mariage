@@ -74,23 +74,15 @@ export function GuestRow({ guest, partner, availableSingles }: GuestRowProps) {
   return (
     <div className={styles.row}>
       <div className={styles.main}>
-        {editing ? (
-          <input
-            className={styles.editInput}
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave();
-              if (e.key === 'Escape') setEditing(false);
-            }}
-            onBlur={handleSave}
-            autoFocus
-          />
-        ) : (
-          <span className={styles.name} onClick={() => setEditing(true)}>
-            {guest.name}
-          </span>
-        )}
+        <input
+          className={styles.editInput}
+          value={editName}
+          onChange={(e) => setEditName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
+          onBlur={handleSave}
+        />
         {!partner && !coupleOpen && (
           <button
             className={styles.coupleBtn}

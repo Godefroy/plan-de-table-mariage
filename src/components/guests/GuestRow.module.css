@@ -20,13 +20,15 @@
 .editInput {
  flex: 1;
  min-width: 0;
- padding: 4px;
- margin: -4px 0 -4px -5px;
- border: 1px solid #db2777;
+ padding: 6px 8px;
+ margin: -2px 0 -2px -8px;
+ border: none;
  border-radius: 4px;
  font-size: 14px;
  outline: none;
+ background: transparent;
 }
+
 
 .coupleBtn {
  background: none;
