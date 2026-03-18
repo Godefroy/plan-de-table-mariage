@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Table, SeatAssignment, Guest } from '../../types';
 import styles from './SeatingPlan.module.css';
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function RectTableSvg({ table, assignments, guestMap }: Props) {
+  const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
   const halfN = Math.floor(table.seats / 2);
   const seatW = 80;
   const seatH = 34;
@@ -27,13 +29,27 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
     assignmentBySeat.set(a.seatIndex, a);
   }
 
+  const handleMouseEnter = (e: React.MouseEvent<SVGGElement>, guest: Guest) => {
+    const svg = e.currentTarget.closest('svg')!;
+    const rect = svg.getBoundingClientRect();
+    setTooltip({
+      name: guest.name,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   const renderSeat = (seatIndex: number, x: number, y: number) => {
     const assignment = assignmentBySeat.get(seatIndex);
     const guest = assignment ? guestMap.get(assignment.guestId) : null;
     const filled = !!guest;
 
     return (
-      <g key={seatIndex}>
+      <g
+        key={seatIndex}
+        onMouseEnter={guest ? (e) => handleMouseEnter(e, guest) : undefined}
+        onMouseLeave={guest ? () => setTooltip(null) : undefined}
+      >
         <rect
           x={x}
           y={y}
@@ -65,31 +81,49 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
   return (
     <div className={styles.tableCard}>
       <h3 className={styles.tableName}>{table.name}</h3>
-      <svg viewBox={`0 0 ${svgW} ${svgH}`} width={svgW} height={svgH}>
-        {/* Table rectangle */}
-        <rect
-          x={tableX}
-          y={tableY}
-          width={tableW}
-          height={tableH}
-          rx={8}
-          fill="#fdf2f8"
-          stroke="#f9a8d4"
-          strokeWidth={2}
-        />
+      <div className={styles.svgWrapper}>
+        <svg viewBox={`0 0 ${svgW} ${svgH}`} width={svgW} height={svgH}>
+          {/* Table rectangle */}
+          <rect
+            x={tableX}
+            y={tableY}
+            width={tableW}
+            height={tableH}
+            rx={8}
+            fill="#fdf2f8"
+            stroke="#f9a8d4"
+            strokeWidth={2}
+          />
+          <text
+            x={tableX + tableW / 2}
+            y={tableY + tableH / 2}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={14}
+            fontWeight={600}
+            fill="#9d174d"
+          >
+            {table.name}
+          </text>
 
-        {/* Top seats (indices 0 .. halfN-1) */}
-        {Array.from({ length: halfN }, (_, i) => {
-          const x = tableX + 10 + i * (seatW + gap);
-          return renderSeat(i, x, topY);
-        })}
+          {/* Top seats (indices 0 .. halfN-1) */}
+          {Array.from({ length: halfN }, (_, i) => {
+            const x = tableX + 10 + i * (seatW + gap);
+            return renderSeat(i, x, topY);
+          })}
 
-        {/* Bottom seats (indices halfN .. seats-1) */}
-        {Array.from({ length: halfN }, (_, i) => {
-          const x = tableX + 10 + i * (seatW + gap);
-          return renderSeat(halfN + i, x, bottomY);
-        })}
-      </svg>
+          {/* Bottom seats (indices halfN .. seats-1) */}
+          {Array.from({ length: halfN }, (_, i) => {
+            const x = tableX + 10 + i * (seatW + gap);
+            return renderSeat(halfN + i, x, bottomY);
+          })}
+        </svg>
+        {tooltip && (
+          <div className={styles.tooltip} style={{ left: tooltip.x, top: tooltip.y }}>
+            {tooltip.name}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
