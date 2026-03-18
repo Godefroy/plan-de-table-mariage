@@ -73,6 +73,7 @@ export function AffinityMatrix() {
             <span className={styles.headerText}>{g.name}</span>
           </div>
         ))}
+        <div className={styles.headerEndSpacer}></div>
       </div>
       <div ref={wrapperRef} className={styles.tableWrapper} onScroll={handleScroll}>
         <table className={styles.matrix}>
@@ -100,6 +101,7 @@ export function AffinityMatrix() {
                     )}
                   </td>
                 ))}
+                <td className={styles.endSpacer}></td>
               </tr>
             ))}
           </tbody>
