@@ -8,5 +8,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        var s = document.createElement('script');
+        s.defer = true;
+        s.src = 'https://umami.internal.lonestone.io/script.js';
+        s.dataset.websiteId = 'e9bccd94-9c3c-49f4-9a69-51671d6b1341';
+        document.head.appendChild(s);
+      }
+    </script>
   </body>
 </html>
