@@ -5,7 +5,7 @@ export type AppAction =
   | { type: 'UPDATE_GUEST'; payload: { id: string; name: string } }
   | { type: 'REMOVE_GUEST'; payload: { id: string } }
   | { type: 'SET_GUEST_LANGUAGES'; payload: { id: string; languages: string[] } }
-  | { type: 'SET_AFFINITY'; payload: { guestId1: string; guestId2: string; score: AffinityScore } }
+  | { type: 'SET_AFFINITY'; payload: { guestId1: string; guestId2: string; score: AffinityScore; keepAssignments?: boolean } }
   | { type: 'REMOVE_AFFINITY'; payload: { guestId1: string; guestId2: string } }
   | { type: 'ADD_COUPLE'; payload: { guestId1: string; guestId2: string } }
   | { type: 'REMOVE_COUPLE'; payload: { guestId1: string; guestId2: string } }

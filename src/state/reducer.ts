@@ -93,7 +93,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           { guestId1: gId1, guestId2: gId2, score: action.payload.score },
         ];
       }
-      return { ...state, affinities, assignments: [] };
+      return action.payload.keepAssignments
+        ? { ...state, affinities }
+        : { ...state, affinities, assignments: [] };
     }
 
     case 'REMOVE_AFFINITY': {
