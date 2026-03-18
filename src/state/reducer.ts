@@ -152,6 +152,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         name: action.payload.name,
         shape: action.payload.shape,
         seats: action.payload.seats,
+        customSides: action.payload.customSides,
       };
       return { ...state, tables: [...state.tables, newTable], assignments: [] };
     }
@@ -166,6 +167,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 name: action.payload.name,
                 shape: action.payload.shape,
                 seats: action.payload.seats,
+                customSides: action.payload.customSides,
               }
             : t
         ),

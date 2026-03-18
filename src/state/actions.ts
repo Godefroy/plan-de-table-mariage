@@ -9,8 +9,8 @@ export type AppAction =
   | { type: 'REMOVE_AFFINITY'; payload: { guestId1: string; guestId2: string } }
   | { type: 'ADD_COUPLE'; payload: { guestId1: string; guestId2: string } }
   | { type: 'REMOVE_COUPLE'; payload: { guestId1: string; guestId2: string } }
-  | { type: 'ADD_TABLE'; payload: { name: string; shape: TableShape; seats: number } }
-  | { type: 'UPDATE_TABLE'; payload: { id: string; name: string; shape: TableShape; seats: number } }
+  | { type: 'ADD_TABLE'; payload: { name: string; shape: TableShape; seats: number; customSides?: [number, number, number, number] } }
+  | { type: 'UPDATE_TABLE'; payload: { id: string; name: string; shape: TableShape; seats: number; customSides?: [number, number, number, number] } }
   | { type: 'REMOVE_TABLE'; payload: { id: string } }
   | { type: 'SET_ASSIGNMENTS'; payload: SeatAssignment[] }
   | { type: 'CLEAR_ASSIGNMENTS' }

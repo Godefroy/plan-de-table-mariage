@@ -57,7 +57,7 @@ export function computeScore(
     }
 
     for (const seat of seats) {
-      const neighbors = getNeighborsWithWeight(table.shape, table.seats, seat.seatIndex);
+      const neighbors = getNeighborsWithWeight(table.shape, table.seats, seat.seatIndex, table.customSides);
       for (const neighbor of neighbors) {
         const neighborGuestId = seatByIndex.get(neighbor.seatIndex);
         if (!neighborGuestId) continue;
@@ -100,7 +100,7 @@ export function computeScore(
     const seat2 = seats.find((s) => s.guestId === couple.guestId2);
     if (!seat1 || !seat2) continue;
 
-    const neighbors = getAdjacentSeatIndices(table.shape, table.seats, seat1.seatIndex);
+    const neighbors = getAdjacentSeatIndices(table.shape, table.seats, seat1.seatIndex, table.customSides);
     if (!neighbors.includes(seat2.seatIndex)) {
       score -= 50; // Same table but not adjacent
     }

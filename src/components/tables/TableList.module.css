@@ -147,6 +147,32 @@
   border-radius: 4px;
 }
 
+.customSides {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.customSideEntry {
+  display: flex;
+  align-items: center;
+}
+
+.customSideX {
+  color: #9ca3af;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+.customSideInput {
+  width: 44px;
+  padding: 5px 3px 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
 .empty {
   color: #999;
   text-align: center;

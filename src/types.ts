@@ -22,13 +22,14 @@ export interface Couple {
   guestId2: string;
 }
 
-export type TableShape = 'round' | 'rectangular';
+export type TableShape = 'round' | 'rectangular' | 'square' | 'custom';
 
 export interface Table {
   id: string;
   name: string;
   shape: TableShape;
   seats: number;
+  customSides?: [number, number, number, number]; // [top, right, bottom, left] for custom shape
 }
 
 export interface SeatAssignment {

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Table, SeatAssignment, Guest } from '../../types';
+import { getTableSides } from '../../optimizer/adjacency';
 import { useTableInteraction } from './useTableInteraction';
 import { getLinkColor, getBadgeBg } from './tableUtils';
 import styles from './SeatingPlan.module.css';
@@ -10,34 +11,117 @@ interface Props {
   guestMap: Map<string, Guest>;
 }
 
-export function RectTableSvg({ table, assignments, guestMap }: Props) {
+export function FourSidedTableSvg({ table, assignments, guestMap }: Props) {
   const {
     hoveredSeat, setHoveredSeat, assignmentBySeat,
     hoveredGuestId, neighborLinks,
     isCouple, getAffinity, handleScoreClick, handleScoreContextMenu,
   } = useTableInteraction(table, assignments, guestMap);
 
-  const halfN = Math.floor(table.seats / 2);
+  const sides = getTableSides(table.shape, table.seats, table.customSides) ?? [1, 1, 1, 1];
+  const [top, right, bottom, left] = sides;
+
   const seatRadius = 26;
   const seatSpacing = 58;
+  const padding = 40;
+
+  const maxH = Math.max(top, bottom, 1);
+  const maxV = Math.max(left, right, 1);
+  const tableW = Math.max((maxH - 1) * seatSpacing, 60);
+  const tableH = Math.max((maxV - 1) * seatSpacing, 60);
   const seatOffset = seatRadius + 14;
 
-  const tableW = Math.max((halfN - 1) * seatSpacing + 40, 80);
-  const tableH = 40;
-  const svgW = tableW + 2 * (seatOffset + seatRadius) + 40;
-  const svgH = tableH + 2 * (seatOffset + seatRadius) + 40;
+  const svgW = tableW + 2 * (seatOffset + seatRadius) + padding;
+  const svgH = tableH + 2 * (seatOffset + seatRadius) + padding;
   const cx = svgW / 2;
   const cy = svgH / 2;
+  const halfW = tableW / 2;
+  const halfH = tableH / 2;
 
-  const seatCenters = useMemo(() => {
-    const centers = new Map<number, { x: number; y: number }>();
-    for (let i = 0; i < halfN; i++) {
-      const x = halfN <= 1 ? cx : cx - (halfN - 1) * seatSpacing / 2 + i * seatSpacing;
-      centers.set(i, { x, y: cy - tableH / 2 - seatOffset });
-      centers.set(halfN + i, { x, y: cy + tableH / 2 + seatOffset });
+  const seatPositions = useMemo(() => {
+    const positions = new Map<number, { x: number; y: number }>();
+    let idx = 0;
+
+    // Top: left to right
+    for (let i = 0; i < top; i++) {
+      const x = top <= 1 ? cx : cx - halfW + (i / (top - 1)) * 2 * halfW;
+      positions.set(idx++, { x, y: cy - halfH - seatOffset });
     }
-    return centers;
-  }, [halfN, cx, cy, tableH, seatSpacing, seatOffset]);
+    // Right: top to bottom
+    for (let i = 0; i < right; i++) {
+      const y = right <= 1 ? cy : cy - halfH + (i / (right - 1)) * 2 * halfH;
+      positions.set(idx++, { x: cx + halfW + seatOffset, y });
+    }
+    // Bottom: right to left
+    for (let i = 0; i < bottom; i++) {
+      const x = bottom <= 1 ? cx : cx + halfW - (i / (bottom - 1)) * 2 * halfW;
+      positions.set(idx++, { x, y: cy + halfH + seatOffset });
+    }
+    // Left: bottom to top
+    for (let i = 0; i < left; i++) {
+      const y = left <= 1 ? cy : cy + halfH - (i / (left - 1)) * 2 * halfH;
+      positions.set(idx++, { x: cx - halfW - seatOffset, y });
+    }
+
+    return positions;
+  }, [top, right, bottom, left, cx, cy, halfW, halfH, seatOffset]);
+
+  const cumulative = useMemo(() => [0, top, top + right, top + right + bottom, top + right + bottom + left], [top, right, bottom, left]);
+
+  const getSide = (seatIdx: number): number => {
+    for (let s = 0; s < 4; s++) {
+      if (seatIdx >= cumulative[s] && seatIdx < cumulative[s + 1]) return s;
+    }
+    return -1;
+  };
+
+  // Badge on the perpendicular bisector of from–to, offset outward from table center.
+  // Curve control point derived so the bezier passes through badge at t=0.5.
+  const computeLinkGeometry = (fromIdx: number, toIdx: number, weight: number) => {
+    const from = seatPositions.get(fromIdx)!;
+    const to = seatPositions.get(toIdx)!;
+    const midX = (from.x + to.x) / 2;
+    const midY = (from.y + to.y) / 2;
+
+    // Perpendicular to the from–to segment (true bisector direction)
+    const segDx = to.x - from.x;
+    const segDy = to.y - from.y;
+    const segLen = Math.sqrt(segDx * segDx + segDy * segDy) || 1;
+    let px = -segDy / segLen;
+    let py = segDx / segLen;
+
+    // Orient outward (away from table center)
+    if (px * (midX - cx) + py * (midY - cy) < 0) {
+      px = -px;
+      py = -py;
+    }
+
+    const fromSide = getSide(fromIdx);
+    const toSide = getSide(toIdx);
+    const sameSide = fromSide === toSide;
+
+    // Positive = outward, negative = inward
+    let offset: number;
+    if (sameSide && weight === 1) {
+      offset = 30;
+    } else if (sameSide) {
+      offset = -42;  // inward to avoid the intermediate seat
+    } else if (weight === 1) {
+      offset = 36;   // corner direct: further out to clear seats
+    } else {
+      offset = -28;  // corner indirect: inward side of the table
+    }
+
+    const bx = midX + px * offset;
+    const by = midY + py * offset;
+
+    // CP so bezier midpoint (t=0.5) = badge: CP = 2*badge − mid
+    const cpX = 2 * bx - midX;
+    const cpY = 2 * by - midY;
+    const d = `M ${from.x},${from.y} Q ${cpX},${cpY} ${to.x},${to.y}`;
+
+    return { bx, by, d };
+  };
 
   return (
     <div className={styles.tableCard}>
@@ -49,10 +133,10 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
           height={svgH}
           onMouseLeave={() => setHoveredSeat(null)}
         >
-          {/* Table rectangle */}
+          {/* Table shape */}
           <rect
-            x={cx - tableW / 2}
-            y={cy - tableH / 2}
+            x={cx - halfW}
+            y={cy - halfH}
             width={tableW}
             height={tableH}
             rx={8}
@@ -63,27 +147,10 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
 
           {/* Links on hover */}
           {hoveredSeat !== null && hoveredGuestId && neighborLinks.map((n) => {
-            const from = seatCenters.get(hoveredSeat)!;
-            const to = seatCenters.get(n.seatIndex)!;
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
-            const hoveredIsTop = hoveredSeat < halfN;
-            const neighborIsTop = n.seatIndex < halfN;
-            const sameRow = hoveredIsTop === neighborIsTop;
+            const { d } = computeLinkGeometry(hoveredSeat, n.seatIndex, n.weight);
             const couple = isCouple(hoveredGuestId, n.guestId);
             const score = getAffinity(hoveredGuestId, n.guestId);
             const color = couple ? '#e11d48' : getLinkColor(score);
-
-            let d: string;
-            if (!sameRow) {
-              d = `M ${from.x},${from.y} L ${to.x},${to.y}`;
-            } else if (n.weight === 1) {
-              const outwardY = hoveredIsTop ? midY - 65 : midY + 65;
-              d = `M ${from.x},${from.y} Q ${midX},${outwardY} ${to.x},${to.y}`;
-            } else {
-              const inwardY = hoveredIsTop ? midY + 65 : midY - 65;
-              d = `M ${from.x},${from.y} Q ${midX},${inwardY} ${to.x},${to.y}`;
-            }
 
             return (
               <path
@@ -99,7 +166,7 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
           })}
 
           {/* Seats */}
-          {Array.from(seatCenters.entries()).map(([i, pos]) => {
+          {Array.from(seatPositions.entries()).map(([i, pos]) => {
             const assignment = assignmentBySeat.get(i);
             const guest = assignment ? guestMap.get(assignment.guestId) : null;
             const filled = !!guest;
@@ -137,27 +204,7 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
 
           {/* Score badges on hover */}
           {hoveredSeat !== null && hoveredGuestId && neighborLinks.map((n) => {
-            const from = seatCenters.get(hoveredSeat)!;
-            const to = seatCenters.get(n.seatIndex)!;
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
-            const hoveredIsTop = hoveredSeat < halfN;
-            const neighborIsTop = n.seatIndex < halfN;
-            const sameRow = hoveredIsTop === neighborIsTop;
-
-            let bx: number, by: number;
-            if (!sameRow) {
-              bx = midX;
-              by = midY;
-            } else if (n.weight === 1) {
-              const outwardY = hoveredIsTop ? midY - 65 : midY + 65;
-              bx = (from.x + 2 * midX + to.x) / 4;
-              by = (from.y + 2 * outwardY + to.y) / 4;
-            } else {
-              const inwardY = hoveredIsTop ? midY + 65 : midY - 65;
-              bx = (from.x + 2 * midX + to.x) / 4;
-              by = (from.y + 2 * inwardY + to.y) / 4;
-            }
+            const { bx, by } = computeLinkGeometry(hoveredSeat, n.seatIndex, n.weight);
             const couple = isCouple(hoveredGuestId, n.guestId);
 
             if (couple) {
