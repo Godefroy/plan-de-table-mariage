@@ -8,7 +8,7 @@ export function OptimizerPanel() {
   const state = useAppState();
   const dispatch = useAppDispatch();
   const [running, setRunning] = useState(false);
-  const [progress, setProgress] = useState<{ iter: number; score: number } | null>(null);
+  const [progress, setProgress] = useState<{ pass: number; totalPasses: number; score: number } | null>(null);
 
   const { guests, tables, affinities, couples, assignments } = state;
   const totalSeats = tables.reduce((sum, t) => sum + t.seats, 0);
@@ -32,7 +32,8 @@ export function OptimizerPanel() {
           affinities,
           couples,
           undefined,
-          (iter, score) => setProgress({ iter, score })
+          (pass, totalPasses, score) => setProgress({ pass, totalPasses, score }),
+          assignments
         );
         dispatch({ type: 'SET_ASSIGNMENTS', payload: result });
       } catch (err) {
@@ -72,7 +73,7 @@ export function OptimizerPanel() {
 
       {running && progress && (
         <div className={styles.progress}>
-          Itération {progress.iter.toLocaleString()} — Meilleur score : {progress.score}
+          Passe {progress.pass}/{progress.totalPasses} — Meilleur score : {progress.score}
         </div>
       )}
 

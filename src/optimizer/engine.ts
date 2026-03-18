@@ -107,20 +107,19 @@ function generateNeighbor(
   return next;
 }
 
-export function optimize(
-  guests: Guest[],
+const DEFAULT_PASSES = 5;
+
+function runPass(
+  initialAssignment: SeatAssignment[],
   tables: Table[],
   affinities: AffinityPair[],
   couples: Couple[],
-  config?: Partial<OptimizerConfig>,
-  onProgress?: (iteration: number, bestScore: number) => void
-): SeatAssignment[] {
-  if (guests.length === 0 || tables.length === 0) return [];
-
-  const cfg = { ...DEFAULT_CONFIG, ...config };
-  let current = createRandomAssignment(guests, tables);
+  guests: Guest[],
+  cfg: OptimizerConfig
+): { best: SeatAssignment[]; bestScore: number } {
+  let current = initialAssignment;
   let currentScore = computeScore(current, tables, affinities, couples, guests);
-  let best = [...current.map((a) => ({ ...a }))];
+  let best = current.map((a) => ({ ...a }));
   let bestScore = currentScore;
   let temperature = cfg.initialTemperature;
 
@@ -140,11 +139,44 @@ export function optimize(
     }
 
     temperature *= cfg.coolingRate;
-
-    if (onProgress && i % 1000 === 0) {
-      onProgress(i, bestScore);
-    }
   }
 
-  return best;
+  return { best, bestScore };
+}
+
+export function optimize(
+  guests: Guest[],
+  tables: Table[],
+  affinities: AffinityPair[],
+  couples: Couple[],
+  config?: Partial<OptimizerConfig>,
+  onProgress?: (pass: number, totalPasses: number, bestScore: number) => void,
+  existingAssignments?: SeatAssignment[]
+): SeatAssignment[] {
+  if (guests.length === 0 || tables.length === 0) return [];
+
+  const cfg = { ...DEFAULT_CONFIG, ...config };
+  const totalPasses = DEFAULT_PASSES;
+
+  let globalBest: SeatAssignment[] = [];
+  let globalBestScore = -Infinity;
+
+  for (let pass = 0; pass < totalPasses; pass++) {
+    // First pass: start from existing assignments if available
+    const initial =
+      pass === 0 && existingAssignments && existingAssignments.length > 0
+        ? existingAssignments.map((a) => ({ ...a }))
+        : createRandomAssignment(guests, tables);
+
+    const { best, bestScore } = runPass(initial, tables, affinities, couples, guests, cfg);
+
+    if (bestScore > globalBestScore) {
+      globalBest = best;
+      globalBestScore = bestScore;
+    }
+
+    onProgress?.(pass + 1, totalPasses, globalBestScore);
+  }
+
+  return globalBest;
 }
