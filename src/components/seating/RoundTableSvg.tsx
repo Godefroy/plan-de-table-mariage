@@ -76,11 +76,10 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
     return affinityMap.get(`${id1}:${id2}`) ?? 0;
   };
 
-  const handleScoreClick = (e: React.MouseEvent, idA: string, idB: string) => {
-    e.stopPropagation();
+  const cycleScore = (idA: string, idB: string, reverse: boolean) => {
     const score = getAffinity(idA, idB);
     const idx = SCORE_CYCLE.indexOf(score);
-    const nextIdx = e.shiftKey
+    const nextIdx = reverse
       ? (idx - 1 + SCORE_CYCLE.length) % SCORE_CYCLE.length
       : (idx + 1) % SCORE_CYCLE.length;
     const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
@@ -88,6 +87,17 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
       type: 'SET_AFFINITY',
       payload: { guestId1: id1, guestId2: id2, score: SCORE_CYCLE[nextIdx], keepAssignments: true },
     });
+  };
+
+  const handleScoreClick = (e: React.MouseEvent, idA: string, idB: string) => {
+    e.stopPropagation();
+    cycleScore(idA, idB, e.shiftKey);
+  };
+
+  const handleScoreContextMenu = (e: React.MouseEvent, idA: string, idB: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    cycleScore(idA, idB, true);
   };
 
   // Compute neighbor links when hovering
@@ -219,6 +229,7 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
               <g
                 key={`badge-${n.seatIndex}`}
                 onClick={(e) => handleScoreClick(e, hoveredGuestId, n.guestId)}
+                onContextMenu={(e) => handleScoreContextMenu(e, hoveredGuestId, n.guestId)}
                 style={{ cursor: 'pointer' }}
               >
                 <circle cx={bx} cy={by} r={12} fill={getBadgeBg(score)} stroke={getLinkColor(score)} strokeWidth={1.5} />

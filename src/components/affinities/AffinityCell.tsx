@@ -25,17 +25,22 @@ export function AffinityCell({
 }) {
   const dispatch = useAppDispatch();
 
-  const handleClick = (e: React.MouseEvent) => {
+  const cycleScore = (reverse: boolean) => {
     const currentIdx = SCORE_CYCLE.indexOf(score as AffinityScore);
-    const nextIdx = e.shiftKey
+    const nextIdx = reverse
       ? (currentIdx - 1 + SCORE_CYCLE.length) % SCORE_CYCLE.length
       : (currentIdx + 1) % SCORE_CYCLE.length;
-    const nextScore = SCORE_CYCLE[nextIdx];
-
     dispatch({
       type: 'SET_AFFINITY',
-      payload: { guestId1, guestId2, score: nextScore },
+      payload: { guestId1, guestId2, score: SCORE_CYCLE[nextIdx] },
     });
+  };
+
+  const handleClick = (e: React.MouseEvent) => cycleScore(e.shiftKey);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    cycleScore(true);
   };
 
   return (
@@ -43,6 +48,7 @@ export function AffinityCell({
       className={styles.cell}
       style={{ background: getScoreColor(score) }}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       title={`${score} (clic: +1, shift+clic: -1)`}
     >
       {score !== 0 ? (score > 0 ? `+${score}` : score) : ''}
