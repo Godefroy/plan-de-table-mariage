@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Guest } from '../../types';
 import { useAppDispatch, useAppState } from '../../state/AppContext';
 import styles from './GuestRow.module.css';
@@ -17,6 +17,19 @@ export function GuestRow({ guest, partner, availableSingles }: GuestRowProps) {
   const [coupleOpen, setCoupleOpen] = useState(false);
   const [coupleSearch, setCoupleSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const comboRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!coupleOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (comboRef.current && !comboRef.current.contains(e.target as Node)) {
+        setCoupleOpen(false);
+        setCoupleSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [coupleOpen]);
 
   const handleSave = () => {
     const name = editName.trim();
@@ -90,7 +103,7 @@ export function GuestRow({ guest, partner, availableSingles }: GuestRowProps) {
           </button>
         )}
         {!partner && coupleOpen && (
-          <div className={styles.comboWrapper}>
+          <div ref={comboRef} className={styles.comboWrapper}>
             <input
               ref={inputRef}
               className={styles.comboInput}
@@ -129,15 +142,7 @@ export function GuestRow({ guest, partner, availableSingles }: GuestRowProps) {
                 <div className={styles.comboEmpty}>Aucun invité disponible</div>
               )}
             </div>
-            <button
-              className={styles.comboCancel}
-              onMouseDown={() => {
-                setCoupleOpen(false);
-                setCoupleSearch('');
-              }}
-            >
-              ✕
-            </button>
+
           </div>
         )}
         <div className={styles.flags}>
