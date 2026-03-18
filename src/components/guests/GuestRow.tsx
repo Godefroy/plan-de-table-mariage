@@ -12,7 +12,7 @@ interface GuestRowProps {
 export function GuestRow({ guest, partner, availableSingles }: GuestRowProps) {
   const { languages } = useAppState();
   const dispatch = useAppDispatch();
-  const [editing, setEditing] = useState(false);
+  const [_editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(guest.name);
   const [coupleOpen, setCoupleOpen] = useState(false);
   const [coupleSearch, setCoupleSearch] = useState('');

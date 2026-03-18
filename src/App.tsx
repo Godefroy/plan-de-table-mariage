@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { TabNav } from "./components/common/TabNav";
 import { ImportExport } from "./components/common/ImportExport";
@@ -40,8 +40,6 @@ export default function App() {
  const hasData = state.guests.length > 0;
 
  const [showSettings, setShowSettings] = useState(false);
- const prevPathRef = useRef("/guests");
-
  const handleOpenSettings = () => {
   setShowSettings((prev) => !prev);
  };
