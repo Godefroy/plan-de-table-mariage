@@ -23,7 +23,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'ADD_GUEST': {
       const newGuest = {
-        id: crypto.randomUUID(),
+        id: action.payload.id ?? crypto.randomUUID(),
         name: action.payload.name,
         languages: [],
       };

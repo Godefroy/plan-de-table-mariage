@@ -1,78 +1,168 @@
 .row {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 8px 12px;
-  background: white;
+ border: 1px solid #e5e7eb;
+ border-radius: 8px;
+ padding: 8px 12px;
+ background: white;
 }
 
 .main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+ display: flex;
+ align-items: center;
+ gap: 8px;
 }
 
 .name {
-  flex: 1;
-  font-size: 14px;
-  cursor: text;
+ font-size: 14px;
+ cursor: text;
+ white-space: nowrap;
 }
 
 .editInput {
-  flex: 1;
-  padding: 4px 8px;
-  border: 1px solid #7c3aed;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
+ flex: 1;
+ min-width: 0;
+ padding: 4px;
+ margin: -4px 0 -4px -5px;
+ border: 1px solid #7c3aed;
+ border-radius: 4px;
+ font-size: 14px;
+ outline: none;
+}
+
+.coupleBtn {
+ background: none;
+ border: none;
+ cursor: pointer;
+ font-size: 12px;
+ color: #9ca3af;
+ white-space: nowrap;
+ padding: 2px 6px;
+ border-radius: 4px;
+}
+
+.coupleBtn:hover {
+ color: #7c3aed;
+ background: #f3f4f6;
+}
+
+.comboWrapper {
+ position: relative;
+ display: flex;
+ align-items: center;
+ gap: 4px;
+}
+
+.comboInput {
+ padding: 4px 8px;
+ border: 1px solid #7c3aed;
+ border-radius: 4px;
+ font-size: 13px;
+ outline: none;
+ width: 180px;
+}
+
+.comboDropdown {
+ position: absolute;
+ top: 100%;
+ left: 0;
+ z-index: 10;
+ background: white;
+ border: 1px solid #d1d5db;
+ border-radius: 6px;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+ max-height: 200px;
+ overflow-y: auto;
+ width: 220px;
+ margin-top: 2px;
+}
+
+.comboOption {
+ display: block;
+ width: 100%;
+ text-align: left;
+ padding: 8px 12px;
+ border: none;
+ background: none;
+ cursor: pointer;
+ font-size: 13px;
+}
+
+.comboOption:hover {
+ background: #f3f4f6;
+}
+
+.comboCreate {
+ color: #7c3aed;
+ font-weight: 500;
+ border-top: 1px solid #e5e7eb;
+}
+
+.comboEmpty {
+ padding: 8px 12px;
+ color: #9ca3af;
+ font-size: 13px;
+ font-style: italic;
+}
+
+.comboCancel {
+ background: none;
+ border: none;
+ cursor: pointer;
+ color: #9ca3af;
+ font-size: 14px;
+ padding: 2px 4px;
+}
+
+.comboCancel:hover {
+ color: #ef4444;
 }
 
 .flags {
-  display: flex;
-  gap: 2px;
+ display: flex;
+ gap: 2px;
+ margin-left: auto;
 }
 
 .flagBtn {
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 4px;
-  opacity: 0.3;
-  filter: grayscale(1);
-  transition: opacity 0.15s, filter 0.15s;
+ background: none;
+ border: 1px solid transparent;
+ border-radius: 4px;
+ cursor: pointer;
+ font-size: 16px;
+ line-height: 1;
+ padding: 2px 4px;
+ opacity: 0.3;
+ filter: grayscale(1);
+ transition:
+  opacity 0.15s,
+  filter 0.15s;
 }
 
 .flagBtn:hover {
-  opacity: 0.7;
-  filter: grayscale(0);
+ opacity: 0.7;
+ filter: grayscale(0);
 }
 
 .flagActive {
-  opacity: 1;
-  filter: grayscale(0);
+ opacity: 1;
+ filter: grayscale(0);
 }
 
 .actions {
-  display: flex;
-  gap: 4px;
+ display: flex;
+ gap: 4px;
 }
 
 .deleteBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.deleteBtn {
-  color: #ef4444;
+ background: none;
+ border: none;
+ cursor: pointer;
+ padding: 4px 6px;
+ border-radius: 4px;
+ font-size: 14px;
+ line-height: 1;
+ color: #ef4444;
 }
 
 .deleteBtn:hover {
-  background: #fef2f2;
+ background: #fef2f2;
 }

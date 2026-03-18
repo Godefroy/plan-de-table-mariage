@@ -3,7 +3,6 @@ import { TabNav } from './components/common/TabNav';
 import { ImportExport } from './components/common/ImportExport';
 import { GuestList } from './components/guests/GuestList';
 import { AffinityMatrix } from './components/affinities/AffinityMatrix';
-import { CoupleList } from './components/couples/CoupleList';
 import { TableList } from './components/tables/TableList';
 import { SeatingPlan } from './components/seating/SeatingPlan';
 import { SettingsPage } from './components/settings/SettingsPage';
@@ -32,7 +31,6 @@ export default function App() {
       <main className={styles.main}>
         {activeTab === 'guests' && <GuestList />}
         {activeTab === 'affinities' && <AffinityMatrix />}
-        {activeTab === 'couples' && <CoupleList />}
         {activeTab === 'tables' && <TableList />}
         {activeTab === 'seating' && <SeatingPlan />}
         {activeTab === 'settings' && <SettingsPage />}
