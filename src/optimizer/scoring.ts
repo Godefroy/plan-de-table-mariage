@@ -1,5 +1,5 @@
 import type { AffinityPair, Couple, Guest, SeatAssignment, Table } from '../types';
-import { getAdjacentSeatIndices } from './adjacency';
+import { getAdjacentSeatIndices, getNeighborsWithWeight } from './adjacency';
 import { languageCompatibility } from './language';
 
 function normalizeIds(id1: string, id2: string): string {
@@ -45,7 +45,7 @@ export function computeScore(
     guestTable.set(a.guestId, a.tableId);
   }
 
-  // Score adjacent pairs at each table
+  // Score neighbor pairs (direct + 2nd degree) at each table
   const scoredPairs = new Set<string>();
   for (const [tableId, seats] of byTable) {
     const table = tableMap.get(tableId);
@@ -57,23 +57,23 @@ export function computeScore(
     }
 
     for (const seat of seats) {
-      const neighbors = getAdjacentSeatIndices(table.shape, table.seats, seat.seatIndex);
-      for (const neighborIdx of neighbors) {
-        const neighborGuestId = seatByIndex.get(neighborIdx);
+      const neighbors = getNeighborsWithWeight(table.shape, table.seats, seat.seatIndex);
+      for (const neighbor of neighbors) {
+        const neighborGuestId = seatByIndex.get(neighbor.seatIndex);
         if (!neighborGuestId) continue;
 
         const pairKey = normalizeIds(seat.guestId, neighborGuestId);
         if (scoredPairs.has(pairKey)) continue;
         scoredPairs.add(pairKey);
 
-        // Affinity score
-        score += affinityMap.get(pairKey) ?? 0;
+        // Affinity score (weighted by proximity)
+        score += (affinityMap.get(pairKey) ?? 0) * neighbor.weight;
 
-        // Language compatibility
+        // Language compatibility (weighted by proximity)
         const g1 = guestMap.get(seat.guestId);
         const g2 = guestMap.get(neighborGuestId);
         if (g1 && g2) {
-          score += languageCompatibility(g1, g2);
+          score += languageCompatibility(g1, g2) * neighbor.weight;
         }
       }
     }
