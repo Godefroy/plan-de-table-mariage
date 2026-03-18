@@ -1,34 +1,31 @@
+import { NavLink } from 'react-router-dom';
 import styles from './TabNav.module.css';
 
 interface Tab {
-  id: string;
+  path: string;
   label: string;
 }
 
 const TABS: Tab[] = [
-  { id: 'guests', label: 'Invités' },
-  { id: 'affinities', label: 'Affinités' },
-  { id: 'tables', label: 'Tables' },
-  { id: 'seating', label: 'Plan de table' },
+  { path: '/guests', label: 'Invités' },
+  { path: '/affinities', label: 'Affinités' },
+  { path: '/tables', label: 'Tables' },
+  { path: '/seating', label: 'Plan de table' },
 ];
 
-export function TabNav({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}) {
+export function TabNav() {
   return (
     <nav className={styles.nav}>
       {TABS.map((tab) => (
-        <button
-          key={tab.id}
-          className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-          onClick={() => onTabChange(tab.id)}
+        <NavLink
+          key={tab.path}
+          to={tab.path}
+          className={({ isActive }) =>
+            `${styles.tab} ${isActive ? styles.active : ''}`
+          }
         >
           {tab.label}
-        </button>
+        </NavLink>
       ))}
     </nav>
   );

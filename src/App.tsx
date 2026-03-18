@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { TabNav } from "./components/common/TabNav";
 import { ImportExport } from "./components/common/ImportExport";
 import { GuestList } from "./components/guests/GuestList";
@@ -6,27 +7,12 @@ import { AffinityMatrix } from "./components/affinities/AffinityMatrix";
 import { TableList } from "./components/tables/TableList";
 import { SeatingPlan } from "./components/seating/SeatingPlan";
 import { SettingsPage } from "./components/settings/SettingsPage";
+import { useAppState } from "./state/AppContext";
 import styles from "./App.module.css";
 
-export default function App() {
- const [activeTab, setActiveTab] = useState("guests");
- const prevTabRef = useRef("guests");
-
- const handleOpenSettings = () => {
-  if (activeTab === "settings") {
-   setActiveTab(prevTabRef.current);
-  } else {
-   prevTabRef.current = activeTab;
-   setActiveTab("settings");
-  }
- };
-
+function WelcomePage() {
  return (
-  <div className={styles.app}>
-   <header className={styles.header}>
-    <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
-    <ImportExport onOpenSettings={handleOpenSettings} />
-   </header>
+  <div className={styles.welcome}>
    <div className={styles.intro}>
     <p className={styles.introTitle}>
      Bienvenue dans votre assistant de plan de table !
@@ -42,14 +28,62 @@ export default function App() {
      votre plan pour le partager ou le retrouver sur un autre appareil.
     </p>
    </div>
-   <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
-   <main className={styles.main}>
-    {activeTab === "guests" && <GuestList />}
-    {activeTab === "affinities" && <AffinityMatrix />}
-    {activeTab === "tables" && <TableList />}
-    {activeTab === "seating" && <SeatingPlan />}
-    {activeTab === "settings" && <SettingsPage />}
-   </main>
+   <a href="/guests" className={styles.startButton}>
+    Commencer
+   </a>
+  </div>
+ );
+}
+
+export default function App() {
+ const state = useAppState();
+ const hasData = state.guests.length > 0;
+
+ const [showSettings, setShowSettings] = useState(false);
+ const prevPathRef = useRef("/guests");
+
+ const handleOpenSettings = () => {
+  setShowSettings((prev) => !prev);
+ };
+
+ if (!hasData) {
+  return (
+   <div className={styles.app}>
+    <header className={styles.headerCentered}>
+     <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
+    </header>
+    <Routes>
+     <Route path="/guests" element={<GuestList />} />
+     <Route path="*" element={<WelcomePage />} />
+    </Routes>
+   </div>
+  );
+ }
+
+ return (
+  <div className={styles.app}>
+   <header className={styles.header}>
+    <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
+    <ImportExport onOpenSettings={handleOpenSettings} />
+   </header>
+   {showSettings ? (
+    <main className={styles.main}>
+     <SettingsPage />
+    </main>
+   ) : (
+    <>
+     <TabNav />
+     <main className={styles.main}>
+      <Routes>
+       <Route path="/guests" element={<GuestList />} />
+       <Route path="/affinities" element={<AffinityMatrix />} />
+       <Route path="/tables" element={<TableList />} />
+       <Route path="/seating" element={<SeatingPlan />} />
+       <Route path="*" element={<Navigate to="/guests" replace />} />
+      </Routes>
+     </main>
+    </>
+   )}
   </div>
  );
 }
