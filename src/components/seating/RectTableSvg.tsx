@@ -26,7 +26,7 @@ interface Props {
 
 export function RectTableSvg({ table, assignments, guestMap }: Props) {
   const [hoveredSeat, setHoveredSeat] = useState<number | null>(null);
-  const { affinities } = useAppState();
+  const { affinities, couples } = useAppState();
   const dispatch = useAppDispatch();
 
   const halfN = Math.floor(table.seats / 2);
@@ -68,6 +68,20 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
     }
     return map;
   }, [affinities]);
+
+  const coupleSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of couples) {
+      const key = c.guestId1 < c.guestId2 ? `${c.guestId1}:${c.guestId2}` : `${c.guestId2}:${c.guestId1}`;
+      set.add(key);
+    }
+    return set;
+  }, [couples]);
+
+  const isCouple = (idA: string, idB: string): boolean => {
+    const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
+    return coupleSet.has(`${id1}:${id2}`);
+  };
 
   const getAffinity = (idA: string, idB: string): AffinityScore => {
     const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
@@ -178,21 +192,39 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
             {table.name}
           </text>
 
-          {/* Curved links on hover */}
+          {/* Links on hover */}
           {hoveredSeat !== null && hoveredGuestId && neighborLinks.map((n) => {
             const from = seatCenters.get(hoveredSeat)!;
             const to = seatCenters.get(n.seatIndex)!;
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            const cpX = (midX + tableCenterX) / 2;
-            const cpY = (midY + tableCenterY) / 2;
+            const hoveredIsTop = hoveredSeat < halfN;
+            const neighborIsTop = n.seatIndex < halfN;
+            const sameRow = hoveredIsTop === neighborIsTop;
+            const couple = isCouple(hoveredGuestId, n.guestId);
             const score = getAffinity(hoveredGuestId, n.guestId);
+            const color = couple ? '#e11d48' : getLinkColor(score);
+
+            let d: string;
+            if (!sameRow) {
+              // Across: straight line
+              d = `M ${from.x},${from.y} L ${to.x},${to.y}`;
+            } else if (n.weight === 1) {
+              // Same row, direct neighbor: curve outward
+              const outwardY = hoveredIsTop ? midY - 65 : midY + 65;
+              d = `M ${from.x},${from.y} Q ${midX},${outwardY} ${to.x},${to.y}`;
+            } else {
+              // Same row, indirect neighbor: curve inward, offset to clear direct neighbor
+              const inwardY = hoveredIsTop ? midY + 65 : midY - 65;
+              d = `M ${from.x},${from.y} Q ${midX},${inwardY} ${to.x},${to.y}`;
+            }
+
             return (
               <path
                 key={`link-${n.seatIndex}`}
-                d={`M ${from.x},${from.y} Q ${cpX},${cpY} ${to.x},${to.y}`}
+                d={d}
                 fill="none"
-                stroke={getLinkColor(score)}
+                stroke={color}
                 strokeWidth={n.weight === 1 ? 2.5 : 1.5}
                 strokeDasharray={n.weight === 1 ? 'none' : '6 3'}
                 opacity={0.8}
@@ -218,13 +250,38 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
             const to = seatCenters.get(n.seatIndex)!;
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            const cpX = (midX + tableCenterX) / 2;
-            const cpY = (midY + tableCenterY) / 2;
-            const bx = (from.x + 2 * cpX + to.x) / 4;
-            const by = (from.y + 2 * cpY + to.y) / 4;
+            const hoveredIsTop = hoveredSeat < halfN;
+            const neighborIsTop = n.seatIndex < halfN;
+            const sameRow = hoveredIsTop === neighborIsTop;
+
+            let bx: number, by: number;
+            if (!sameRow) {
+              // Straight line: badge at midpoint
+              bx = midX;
+              by = midY;
+            } else if (n.weight === 1) {
+              // Outward curve — badge on the exterior arc
+              const outwardY = hoveredIsTop ? midY - 65 : midY + 65;
+              bx = (from.x + 2 * midX + to.x) / 4;
+              by = (from.y + 2 * outwardY + to.y) / 4;
+            } else {
+              // Inward curve with offset
+              const inwardY = hoveredIsTop ? midY + 65 : midY - 65;
+              bx = (from.x + 2 * midX + to.x) / 4;
+              by = (from.y + 2 * inwardY + to.y) / 4;
+            }
+            const couple = isCouple(hoveredGuestId, n.guestId);
+
+            if (couple) {
+              return (
+                <text key={`badge-${n.seatIndex}`} x={bx} y={by} textAnchor="middle" dominantBaseline="central" fontSize={14}>
+                  ❤️
+                </text>
+              );
+            }
+
             const score = getAffinity(hoveredGuestId, n.guestId);
             const label = score === 0 ? '0' : score > 0 ? `+${score}` : `${score}`;
-
             return (
               <g
                 key={`badge-${n.seatIndex}`}
@@ -239,25 +296,6 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
             );
           })}
 
-          {/* Tooltip: guest name above hovered seat */}
-          {hoveredSeat !== null && hoveredGuestId && (() => {
-            const guest = guestMap.get(hoveredGuestId);
-            if (!guest) return null;
-            const pos = seatCenters.get(hoveredSeat)!;
-            const isTop = hoveredSeat < halfN;
-            return (
-              <text
-                x={pos.x}
-                y={isTop ? pos.y - seatH / 2 - 6 : pos.y + seatH / 2 + 14}
-                textAnchor="middle"
-                fontSize={11}
-                fontWeight={600}
-                fill="#1f2937"
-              >
-                {guest.name}
-              </text>
-            );
-          })()}
         </svg>
       </div>
     </div>

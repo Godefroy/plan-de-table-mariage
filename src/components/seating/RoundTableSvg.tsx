@@ -26,7 +26,7 @@ interface Props {
 
 export function RoundTableSvg({ table, assignments, guestMap }: Props) {
   const [hoveredSeat, setHoveredSeat] = useState<number | null>(null);
-  const { affinities } = useAppState();
+  const { affinities, couples } = useAppState();
   const dispatch = useAppDispatch();
 
   const size = 340;
@@ -56,6 +56,20 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
     }
     return map;
   }, [affinities]);
+
+  const coupleSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of couples) {
+      const key = c.guestId1 < c.guestId2 ? `${c.guestId1}:${c.guestId2}` : `${c.guestId2}:${c.guestId1}`;
+      set.add(key);
+    }
+    return set;
+  }, [couples]);
+
+  const isCouple = (idA: string, idB: string): boolean => {
+    const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
+    return coupleSet.has(`${id1}:${id2}`);
+  };
 
   const getAffinity = (idA: string, idB: string): AffinityScore => {
     const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
@@ -112,15 +126,24 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
             const to = seatPositions[n.seatIndex];
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            const cpX = (midX + cx) / 2;
-            const cpY = (midY + cy) / 2;
+            let cpX: number, cpY: number;
+            if (n.weight === 1) {
+              // Degree 1: curve outward (away from center)
+              cpX = midX + (midX - cx) * 0.5;
+              cpY = midY + (midY - cy) * 0.5;
+            } else {
+              // Degree 2: curve inward (toward center)
+              cpX = (midX + cx) / 2;
+              cpY = (midY + cy) / 2;
+            }
+            const couple = isCouple(hoveredGuestId, n.guestId);
             const score = getAffinity(hoveredGuestId, n.guestId);
             return (
               <path
                 key={`link-${n.seatIndex}`}
                 d={`M ${from.x},${from.y} Q ${cpX},${cpY} ${to.x},${to.y}`}
                 fill="none"
-                stroke={getLinkColor(score)}
+                stroke={couple ? '#e11d48' : getLinkColor(score)}
                 strokeWidth={n.weight === 1 ? 2.5 : 1.5}
                 strokeDasharray={n.weight === 1 ? 'none' : '6 3'}
                 opacity={0.8}
@@ -170,14 +193,28 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
             const to = seatPositions[n.seatIndex];
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            const cpX = (midX + cx) / 2;
-            const cpY = (midY + cy) / 2;
-            // Quadratic bezier at t=0.5: (P0 + 2*CP + P1) / 4
+            let cpX: number, cpY: number;
+            if (n.weight === 1) {
+              cpX = midX + (midX - cx) * 0.5;
+              cpY = midY + (midY - cy) * 0.5;
+            } else {
+              cpX = (midX + cx) / 2;
+              cpY = (midY + cy) / 2;
+            }
             const bx = (from.x + 2 * cpX + to.x) / 4;
             const by = (from.y + 2 * cpY + to.y) / 4;
+            const couple = isCouple(hoveredGuestId, n.guestId);
+
+            if (couple) {
+              return (
+                <text key={`badge-${n.seatIndex}`} x={bx} y={by} textAnchor="middle" dominantBaseline="central" fontSize={14}>
+                  ❤️
+                </text>
+              );
+            }
+
             const score = getAffinity(hoveredGuestId, n.guestId);
             const label = score === 0 ? '0' : score > 0 ? `+${score}` : `${score}`;
-
             return (
               <g
                 key={`badge-${n.seatIndex}`}
@@ -192,24 +229,6 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
             );
           })}
 
-          {/* Tooltip: guest name above hovered seat */}
-          {hoveredSeat !== null && hoveredGuestId && (() => {
-            const guest = guestMap.get(hoveredGuestId);
-            if (!guest) return null;
-            const pos = seatPositions[hoveredSeat];
-            return (
-              <text
-                x={pos.x}
-                y={pos.y - seatRadius - 6}
-                textAnchor="middle"
-                fontSize={11}
-                fontWeight={600}
-                fill="#1f2937"
-              >
-                {guest.name}
-              </text>
-            );
-          })()}
         </svg>
       </div>
     </div>
