@@ -43,7 +43,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #7c3aed;
+  border-color: #db2777;
 }
 
 .select {
@@ -69,7 +69,7 @@
 
 .addBtn {
   padding: 8px 20px;
-  background: #7c3aed;
+  background: #db2777;
   color: white;
   border: none;
   border-radius: 6px;
@@ -79,7 +79,7 @@
 }
 
 .addBtn:hover {
-  background: #6d28d9;
+  background: #be185d;
 }
 
 .list {
@@ -114,7 +114,7 @@
 }
 
 .tableNameInput:focus {
-  border-color: #7c3aed;
+  border-color: #db2777;
 }
 
 .tableSelect {

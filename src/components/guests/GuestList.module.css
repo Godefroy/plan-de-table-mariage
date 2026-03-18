@@ -19,13 +19,13 @@
 
 .input:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  border-color: #db2777;
+  box-shadow: 0 0 0 2px rgba(219, 39, 119, 0.2);
 }
 
 .addBtn {
   padding: 8px 20px;
-  background: #7c3aed;
+  background: #db2777;
   color: white;
   border: none;
   border-radius: 6px;
@@ -35,7 +35,7 @@
 }
 
 .addBtn:hover {
-  background: #6d28d9;
+  background: #be185d;
 }
 
 .bulkToggle {
@@ -73,8 +73,8 @@
 
 .bulkTextarea:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  border-color: #db2777;
+  box-shadow: 0 0 0 2px rgba(219, 39, 119, 0.2);
 }
 
 .list {
@@ -85,10 +85,10 @@
 
 .coupleGroup {
   position: relative;
-  border: 1px solid #e9d5ff;
+  border: 1px solid #fbcfe8;
   border-radius: 10px;
   padding: 4px;
-  background: #faf5ff;
+  background: #fdf2f8;
   display: flex;
   flex-direction: column;
   gap: 2px;

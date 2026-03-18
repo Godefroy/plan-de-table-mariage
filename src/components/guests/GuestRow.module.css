@@ -22,7 +22,7 @@
  min-width: 0;
  padding: 4px;
  margin: -4px 0 -4px -5px;
- border: 1px solid #7c3aed;
+ border: 1px solid #db2777;
  border-radius: 4px;
  font-size: 14px;
  outline: none;
@@ -40,7 +40,7 @@
 }
 
 .coupleBtn:hover {
- color: #7c3aed;
+ color: #db2777;
  background: #f3f4f6;
 }
 
@@ -53,7 +53,7 @@
 
 .comboInput {
  padding: 4px 8px;
- border: 1px solid #7c3aed;
+ border: 1px solid #db2777;
  border-radius: 4px;
  font-size: 13px;
  outline: none;
@@ -91,7 +91,7 @@
 }
 
 .comboCreate {
- color: #7c3aed;
+ color: #db2777;
  font-weight: 500;
  border-top: 1px solid #e5e7eb;
 }

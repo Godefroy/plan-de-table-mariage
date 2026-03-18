@@ -8,13 +8,13 @@ interface Props {
 }
 
 export function RoundTableSvg({ table, assignments, guestMap }: Props) {
-  const size = 280;
+  const size = 340;
   const cx = size / 2;
   const cy = size / 2;
-  const tableRadius = 60;
-  const seatRadius = 18;
-  const seatOrbitRadius = tableRadius + seatRadius + 10;
-  const labelOrbitRadius = seatOrbitRadius + seatRadius + 8;
+  const tableRadius = 65;
+  const seatRadius = 26;
+  const seatOrbitRadius = tableRadius + seatRadius + 12;
+  const labelOrbitRadius = seatOrbitRadius + seatRadius + 10;
 
   const seatPositions = Array.from({ length: table.seats }, (_, i) => {
     const angle = (2 * Math.PI * i) / table.seats - Math.PI / 2;
@@ -41,8 +41,8 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
           cx={cx}
           cy={cy}
           r={tableRadius}
-          fill="#faf5ff"
-          stroke="#c4b5fd"
+          fill="#fdf2f8"
+          stroke="#f9a8d4"
           strokeWidth={2}
         />
 
@@ -58,8 +58,8 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
                 cx={pos.x}
                 cy={pos.y}
                 r={seatRadius}
-                fill={filled ? '#ede9fe' : '#f9fafb'}
-                stroke={filled ? '#7c3aed' : '#d1d5db'}
+                fill={filled ? '#fdf2f8' : '#f9fafb'}
+                stroke={filled ? '#db2777' : '#d1d5db'}
                 strokeWidth={1.5}
               />
               <text
@@ -67,10 +67,10 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
                 y={pos.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={9}
-                fill={filled ? '#5b21b6' : '#9ca3af'}
+                fontSize={10}
+                fill={filled ? '#1f2937' : '#9ca3af'}
               >
-                {filled ? (guest!.name.length > 6 ? guest!.name.slice(0, 5) + '.' : guest!.name) : i + 1}
+                {filled ? (guest!.name.length > 10 ? guest!.name.slice(0, 9) + '.' : guest!.name) : i + 1}
               </text>
               {guest && (
                 <text
@@ -81,7 +81,7 @@ export function RoundTableSvg({ table, assignments, guestMap }: Props) {
                   fontSize={8}
                   fill="#4b5563"
                 >
-                  {guest.name.length > 10 ? guest.name.slice(0, 9) + '...' : guest.name}
+                  {guest.name.length > 14 ? guest.name.slice(0, 13) + '...' : guest.name}
                 </text>
               )}
             </g>
