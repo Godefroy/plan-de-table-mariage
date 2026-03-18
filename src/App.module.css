@@ -19,6 +19,28 @@
   margin: 0;
 }
 
+.intro {
+  background: #fff1f5;
+  border: 1px solid #fce7f3;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.introTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #db2777;
+  margin: 0 0 6px;
+}
+
+.introText {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #4b5563;
+  margin: 0;
+}
+
 .main {
   min-height: 400px;
 }
