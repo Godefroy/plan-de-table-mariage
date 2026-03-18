@@ -38,6 +38,8 @@ export function AffinityMatrix() {
     return affinityMap.get(key) ?? 0;
   };
 
+  const sortedGuests = [...guests].sort((a, b) => a.name.localeCompare(b.name));
+
   if (guests.length < 2) {
     return (
       <div className={styles.container}>
@@ -63,7 +65,7 @@ export function AffinityMatrix() {
       </p>
       <div ref={headerRef} className={styles.columnHeaders}>
         <div className={styles.headerSpacer}></div>
-        {guests.map((g, j) => (
+        {sortedGuests.map((g, j) => (
           <div
             key={g.id}
             className={`${styles.colHeader}${hovered?.col === j ? ` ${styles.colHeaderHighlight}` : ''}`}
@@ -75,10 +77,10 @@ export function AffinityMatrix() {
       <div ref={wrapperRef} className={styles.tableWrapper} onScroll={handleScroll}>
         <table className={styles.matrix}>
           <tbody>
-            {guests.map((g1, i) => (
+            {sortedGuests.map((g1, i) => (
               <tr key={g1.id}>
                 <td className={`${styles.rowHeader}${hovered?.row === i ? ` ${styles.rowHeaderHighlight}` : ''}`}>{g1.name}</td>
-                {guests.map((g2, j) => (
+                {sortedGuests.map((g2, j) => (
                   <td
                     key={g2.id}
                     className={styles.cell}

@@ -67,7 +67,7 @@ export function GuestList() {
         </div>
       )}
       <div className={styles.list}>
-        {guests.map((guest) => (
+        {[...guests].sort((a, b) => a.name.localeCompare(b.name)).map((guest) => (
           <GuestRow key={guest.id} guest={guest} />
         ))}
         {guests.length === 0 && (

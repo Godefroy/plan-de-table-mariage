@@ -10,7 +10,7 @@ export function CoupleList() {
 
   const guestMap = new Map(guests.map((g) => [g.id, g]));
   const takenIds = new Set(couples.flatMap((c) => [c.guestId1, c.guestId2]));
-  const availableGuests = guests.filter((g) => !takenIds.has(g.id));
+  const availableGuests = guests.filter((g) => !takenIds.has(g.id)).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleAdd = () => {
     if (!guest1 || !guest2 || guest1 === guest2) return;
@@ -64,7 +64,7 @@ export function CoupleList() {
       </div>
 
       <div className={styles.list}>
-        {couples.map((c) => (
+        {[...couples].sort((a, b) => (guestMap.get(a.guestId1)?.name ?? '').localeCompare(guestMap.get(b.guestId1)?.name ?? '')).map((c) => (
           <div key={`${c.guestId1}-${c.guestId2}`} className={styles.coupleRow}>
             <span>
               {guestMap.get(c.guestId1)?.name ?? '?'}{' '}
