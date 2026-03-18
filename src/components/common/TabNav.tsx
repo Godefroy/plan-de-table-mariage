@@ -7,8 +7,8 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'guests', label: 'Invités' },
-  { id: 'affinities', label: 'Affinités' },
   { id: 'couples', label: 'Couples' },
+  { id: 'affinities', label: 'Affinités' },
   { id: 'tables', label: 'Tables' },
   { id: 'seating', label: 'Plan de table' },
 ];
