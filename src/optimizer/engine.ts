@@ -15,7 +15,11 @@ const DEFAULT_CONFIG: OptimizerConfig = {
   maxIterations: 100_000,
 };
 
-function createRandomAssignment(guests: Guest[], tables: Table[]): SeatAssignment[] {
+function createRandomAssignment(
+  guests: Guest[],
+  tables: Table[],
+  lockedAssignments: SeatAssignment[] = []
+): SeatAssignment[] {
   const totalSeats = tables.reduce((sum, t) => sum + t.seats, 0);
   if (totalSeats < guests.length) {
     throw new Error(
@@ -23,26 +27,41 @@ function createRandomAssignment(guests: Guest[], tables: Table[]): SeatAssignmen
     );
   }
 
-  // Build all available seats
-  const allSeats: { tableId: string; seatIndex: number }[] = [];
+  const lockedSeatKeys = new Set(
+    lockedAssignments.map((a) => `${a.tableId}|${a.seatIndex}`)
+  );
+  const lockedGuestIds = new Set(lockedAssignments.map((a) => a.guestId));
+
+  // Build available (non-locked) seats
+  const availableSeats: { tableId: string; seatIndex: number }[] = [];
   for (const table of tables) {
     for (let i = 0; i < table.seats; i++) {
-      allSeats.push({ tableId: table.id, seatIndex: i });
+      if (!lockedSeatKeys.has(`${table.id}|${i}`)) {
+        availableSeats.push({ tableId: table.id, seatIndex: i });
+      }
     }
   }
 
   // Shuffle seats
-  for (let i = allSeats.length - 1; i > 0; i--) {
+  for (let i = availableSeats.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [allSeats[i], allSeats[j]] = [allSeats[j], allSeats[i]];
+    [availableSeats[i], availableSeats[j]] = [availableSeats[j], availableSeats[i]];
   }
 
-  // Assign guests to first N seats
-  return guests.map((guest, idx) => ({
-    guestId: guest.id,
-    tableId: allSeats[idx].tableId,
-    seatIndex: allSeats[idx].seatIndex,
-  }));
+  // Place locked guests at their pinned seats first
+  const result: SeatAssignment[] = lockedAssignments.map((a) => ({ ...a, locked: true }));
+
+  // Place remaining guests in shuffled available seats
+  const unlockedGuests = guests.filter((g) => !lockedGuestIds.has(g.id));
+  unlockedGuests.forEach((guest, idx) => {
+    result.push({
+      guestId: guest.id,
+      tableId: availableSeats[idx].tableId,
+      seatIndex: availableSeats[idx].seatIndex,
+    });
+  });
+
+  return result;
 }
 
 function generateNeighbor(
@@ -50,13 +69,22 @@ function generateNeighbor(
   tables: Table[]
 ): SeatAssignment[] {
   const next = current.map((a) => ({ ...a }));
+  const unlockedIndices: number[] = [];
+  for (let i = 0; i < next.length; i++) {
+    if (!next[i].locked) unlockedIndices.push(i);
+  }
+  if (unlockedIndices.length < 2) return next;
+
+  const pickUnlocked = () =>
+    unlockedIndices[Math.floor(Math.random() * unlockedIndices.length)];
+
   const rand = Math.random();
 
-  if (rand < 0.6 && next.length >= 2) {
-    // Swap two guests (any two)
-    const i = Math.floor(Math.random() * next.length);
-    let j = Math.floor(Math.random() * (next.length - 1));
-    if (j >= i) j++;
+  if (rand < 0.6) {
+    // Swap two unlocked guests (any two)
+    const i = pickUnlocked();
+    let j = pickUnlocked();
+    while (j === i) j = pickUnlocked();
 
     const tmpTable = next[i].tableId;
     const tmpSeat = next[i].seatIndex;
@@ -64,28 +92,26 @@ function generateNeighbor(
     next[i].seatIndex = next[j].seatIndex;
     next[j].tableId = tmpTable;
     next[j].seatIndex = tmpSeat;
-  } else if (rand < 0.9 && next.length >= 2) {
-    // Swap two guests within the same table
-    const tableIds = [...new Set(next.map((a) => a.tableId))];
+  } else if (rand < 0.9) {
+    // Swap two unlocked guests within the same table
+    const tableIds = [...new Set(unlockedIndices.map((i) => next[i].tableId))];
+    if (tableIds.length === 0) return next;
     const tableId = tableIds[Math.floor(Math.random() * tableIds.length)];
-    const tableGuests = next.filter((a) => a.tableId === tableId);
-    if (tableGuests.length >= 2) {
-      const i = Math.floor(Math.random() * tableGuests.length);
-      let j = Math.floor(Math.random() * (tableGuests.length - 1));
-      if (j >= i) j++;
+    const tableUnlocked = unlockedIndices.filter((i) => next[i].tableId === tableId);
+    if (tableUnlocked.length < 2) return next;
 
-      const tmpSeat = tableGuests[i].seatIndex;
-      tableGuests[i].seatIndex = tableGuests[j].seatIndex;
-      tableGuests[j].seatIndex = tmpSeat;
-    }
+    const i = tableUnlocked[Math.floor(Math.random() * tableUnlocked.length)];
+    let j = tableUnlocked[Math.floor(Math.random() * tableUnlocked.length)];
+    while (j === i) j = tableUnlocked[Math.floor(Math.random() * tableUnlocked.length)];
+
+    const tmpSeat = next[i].seatIndex;
+    next[i].seatIndex = next[j].seatIndex;
+    next[j].seatIndex = tmpSeat;
   } else {
-    // Move a guest to an empty seat
+    // Move an unlocked guest to an empty (non-locked) seat
     const totalSeats = tables.reduce((sum, t) => sum + t.seats, 0);
     if (totalSeats > next.length) {
-      // Find all occupied seats
       const occupied = new Set(next.map((a) => `${a.tableId}|${a.seatIndex}`));
-
-      // Find all empty seats
       const emptySeats: { tableId: string; seatIndex: number }[] = [];
       for (const table of tables) {
         for (let i = 0; i < table.seats; i++) {
@@ -94,9 +120,8 @@ function generateNeighbor(
           }
         }
       }
-
       if (emptySeats.length > 0) {
-        const guestIdx = Math.floor(Math.random() * next.length);
+        const guestIdx = pickUnlocked();
         const emptySeat = emptySeats[Math.floor(Math.random() * emptySeats.length)];
         next[guestIdx].tableId = emptySeat.tableId;
         next[guestIdx].seatIndex = emptySeat.seatIndex;
@@ -105,6 +130,46 @@ function generateNeighbor(
   }
 
   return next;
+}
+
+function extendAssignment(
+  existing: SeatAssignment[],
+  guests: Guest[],
+  tables: Table[]
+): SeatAssignment[] {
+  const placed = new Set(existing.map((a) => a.guestId));
+  const occupied = new Set(existing.map((a) => `${a.tableId}|${a.seatIndex}`));
+
+  const freeSeats: { tableId: string; seatIndex: number }[] = [];
+  for (const t of tables) {
+    for (let i = 0; i < t.seats; i++) {
+      if (!occupied.has(`${t.id}|${i}`)) {
+        freeSeats.push({ tableId: t.id, seatIndex: i });
+      }
+    }
+  }
+  for (let i = freeSeats.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [freeSeats[i], freeSeats[j]] = [freeSeats[j], freeSeats[i]];
+  }
+
+  const missing = guests.filter((g) => !placed.has(g.id));
+  if (missing.length > freeSeats.length) {
+    const totalSeats = tables.reduce((s, t) => s + t.seats, 0);
+    throw new Error(
+      `Pas assez de places : ${totalSeats} sièges pour ${guests.length} invités`
+    );
+  }
+
+  const result = existing.map((a) => ({ ...a }));
+  missing.forEach((g, idx) => {
+    result.push({
+      guestId: g.id,
+      tableId: freeSeats[idx].tableId,
+      seatIndex: freeSeats[idx].seatIndex,
+    });
+  });
+  return result;
 }
 
 const DEFAULT_PASSES = 5;
@@ -158,15 +223,21 @@ export function optimize(
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const totalPasses = DEFAULT_PASSES;
 
+  const validExisting = (existingAssignments ?? []).filter((a) => {
+    const t = tables.find((tab) => tab.id === a.tableId);
+    return t !== undefined && a.seatIndex < t.seats && guests.some((g) => g.id === a.guestId);
+  });
+  const lockedAssignments = validExisting.filter((a) => a.locked);
+
   let globalBest: SeatAssignment[] = [];
   let globalBestScore = -Infinity;
 
   for (let pass = 0; pass < totalPasses; pass++) {
-    // First pass: start from existing assignments if available
+    // First pass: start from existing assignments (filling any gaps), otherwise random
     const initial =
-      pass === 0 && existingAssignments && existingAssignments.length > 0
-        ? existingAssignments.map((a) => ({ ...a }))
-        : createRandomAssignment(guests, tables);
+      pass === 0 && validExisting.length > 0
+        ? extendAssignment(validExisting, guests, tables)
+        : createRandomAssignment(guests, tables, lockedAssignments);
 
     const { best, bestScore } = runPass(initial, tables, affinities, couples, guests, cfg);
 

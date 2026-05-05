@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppState } from '../../state/AppContext';
 import { GuestRow } from './GuestRow';
+import { NextPageButton } from '../common/NextPageButton';
 import type { Guest } from '../../types';
 import styles from './GuestList.module.css';
 
@@ -117,6 +118,7 @@ export function GuestList() {
           <p className={styles.empty}>Aucun invité. Ajoutez-en un ci-dessus.</p>
         )}
       </div>
+      {guests.length > 0 && <NextPageButton to="/affinities" label="Affinités" />}
     </div>
   );
 }

@@ -36,6 +36,7 @@ export interface SeatAssignment {
   guestId: string;
   tableId: string;
   seatIndex: number;
+  locked?: boolean;
 }
 
 export interface AppState {

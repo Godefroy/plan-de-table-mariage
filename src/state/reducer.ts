@@ -27,7 +27,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         name: action.payload.name,
         languages: [],
       };
-      return { ...state, guests: [...state.guests, newGuest], assignments: [] };
+      return { ...state, guests: [...state.guests, newGuest] };
     }
 
     case 'UPDATE_GUEST': {
@@ -36,7 +36,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         guests: state.guests.map((g) =>
           g.id === action.payload.id ? { ...g, name: action.payload.name } : g
         ),
-        assignments: [],
       };
     }
 
@@ -51,7 +50,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         couples: state.couples.filter(
           (c) => c.guestId1 !== id && c.guestId2 !== id
         ),
-        assignments: [],
+        assignments: state.assignments.filter((a) => a.guestId !== id),
       };
     }
 
@@ -63,7 +62,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             ? { ...g, languages: action.payload.languages }
             : g
         ),
-        assignments: [],
       };
     }
 
@@ -93,9 +91,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           { guestId1: gId1, guestId2: gId2, score: action.payload.score },
         ];
       }
-      return action.payload.keepAssignments
-        ? { ...state, affinities }
-        : { ...state, affinities, assignments: [] };
+      return { ...state, affinities };
     }
 
     case 'REMOVE_AFFINITY': {
@@ -108,7 +104,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         affinities: state.affinities.filter(
           (a) => !(a.guestId1 === gId1 && a.guestId2 === gId2)
         ),
-        assignments: [],
       };
     }
 
@@ -127,7 +122,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         couples: [...state.couples, { guestId1: gId1, guestId2: gId2 }],
-        assignments: [],
       };
     }
 
@@ -142,7 +136,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           const [cId1, cId2] = normalizeIds(c.guestId1, c.guestId2);
           return !(cId1 === gId1 && cId2 === gId2);
         }),
-        assignments: [],
       };
     }
 
@@ -154,14 +147,15 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         seats: action.payload.seats,
         customSides: action.payload.customSides,
       };
-      return { ...state, tables: [...state.tables, newTable], assignments: [] };
+      return { ...state, tables: [...state.tables, newTable] };
     }
 
     case 'UPDATE_TABLE': {
+      const { id, seats } = action.payload;
       return {
         ...state,
         tables: state.tables.map((t) =>
-          t.id === action.payload.id
+          t.id === id
             ? {
                 ...t,
                 name: action.payload.name,
@@ -171,7 +165,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
               }
             : t
         ),
-        assignments: [],
+        assignments: state.assignments.filter(
+          (a) => a.tableId !== id || a.seatIndex < seats
+        ),
       };
     }
 
@@ -179,7 +175,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         tables: state.tables.filter((t) => t.id !== action.payload.id),
-        assignments: [],
+        assignments: state.assignments.filter((a) => a.tableId !== action.payload.id),
       };
     }
 
@@ -189,6 +185,46 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CLEAR_ASSIGNMENTS': {
       return { ...state, assignments: [] };
+    }
+
+    case 'TOGGLE_LOCK': {
+      const { tableId, seatIndex } = action.payload;
+      return {
+        ...state,
+        assignments: state.assignments.map((a) =>
+          a.tableId === tableId && a.seatIndex === seatIndex
+            ? { ...a, locked: !a.locked }
+            : a
+        ),
+      };
+    }
+
+    case 'SWAP_GUESTS': {
+      const { tableId, seatIndex, otherGuestId } = action.payload;
+      const target = state.assignments.find(
+        (a) => a.tableId === tableId && a.seatIndex === seatIndex
+      );
+      const other = state.assignments.find((a) => a.guestId === otherGuestId);
+      if (!target || !other) return state;
+      if (target.guestId === otherGuestId) return state;
+
+      const targetTable = target.tableId;
+      const targetSeat = target.seatIndex;
+      const otherTable = other.tableId;
+      const otherSeat = other.seatIndex;
+
+      return {
+        ...state,
+        assignments: state.assignments.map((a) => {
+          if (a.guestId === target.guestId) {
+            return { ...a, tableId: otherTable, seatIndex: otherSeat, locked: false };
+          }
+          if (a.guestId === otherGuestId) {
+            return { ...a, tableId: targetTable, seatIndex: targetSeat, locked: true };
+          }
+          return a;
+        }),
+      };
     }
 
     case 'ADD_LANGUAGE': {
@@ -208,7 +244,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...g,
           languages: g.languages.filter((l) => l !== langName),
         })),
-        assignments: [],
       };
     }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { TableShape } from '../../types';
 import { useAppDispatch, useAppState } from '../../state/AppContext';
+import { NextPageButton } from '../common/NextPageButton';
 import styles from './TableList.module.css';
 
 function normalizeSeats(shape: TableShape, seats: number): number {
@@ -160,6 +161,7 @@ export function TableList() {
           <p className={styles.empty}>Aucune table. Ajoutez-en une ci-dessus.</p>
         )}
       </div>
+      {tables.length > 0 && <NextPageButton to="/seating" label="Plan de table" />}
     </div>
   );
 }

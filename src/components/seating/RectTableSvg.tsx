@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import type { Table, SeatAssignment, Guest } from '../../types';
+import { useAppState } from '../../state/AppContext';
 import { useTableInteraction } from './useTableInteraction';
-import { getLinkColor, getBadgeBg } from './tableUtils';
+import { getLinkColor, getBadgeBg, LOCK_OFFSET } from './tableUtils';
+import { SeatLock } from './SeatLock';
+import { SwapMenu } from './SwapMenu';
 import styles from './SeatingPlan.module.css';
 
 interface Props {
@@ -11,10 +14,12 @@ interface Props {
 }
 
 export function RectTableSvg({ table, assignments, guestMap }: Props) {
+  const { guests } = useAppState();
   const {
     hoveredSeat, setHoveredSeat, assignmentBySeat,
     hoveredGuestId, neighborLinks,
     isCouple, getAffinity, handleScoreClick, handleScoreContextMenu,
+    swapSeat, openSwap, closeSwap, toggleLock, swapWith,
   } = useTableInteraction(table, assignments, guestMap);
 
   const halfN = Math.floor(table.seats / 2);
@@ -38,6 +43,9 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
     }
     return centers;
   }, [halfN, cx, cy, tableH, seatSpacing, seatOffset]);
+
+  const swapAssignment = swapSeat !== null ? assignmentBySeat.get(swapSeat) : null;
+  const swapPos = swapSeat !== null ? seatCenters.get(swapSeat) : null;
 
   return (
     <div className={styles.tableCard}>
@@ -105,32 +113,45 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
             const filled = !!guest;
             const isHovered = hoveredSeat === i;
             const isNeighbor = hoveredSeat !== null && neighborLinks.some((n) => n.seatIndex === i);
+            const isTop = i < halfN;
+            const lockPos = { x: pos.x, y: isTop ? pos.y - LOCK_OFFSET : pos.y + LOCK_OFFSET };
 
             return (
-              <g
-                key={i}
-                onMouseEnter={() => setHoveredSeat(filled ? i : null)}
-                style={{ cursor: 'default' }}
-              >
-                <circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={seatRadius}
-                  fill={filled ? '#fdf2f8' : '#f9fafb'}
-                  stroke={isHovered ? '#9d174d' : isNeighbor ? '#f472b6' : filled ? '#db2777' : '#d1d5db'}
-                  strokeWidth={isHovered || isNeighbor ? 2.5 : 1.5}
-                />
-                <text
-                  x={pos.x}
-                  y={pos.y}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fontSize={10}
-                  dx={1}
-                  fill={filled ? '#1f2937' : '#9ca3af'}
+              <g key={i}>
+                <g
+                  onMouseEnter={() => setHoveredSeat(filled ? i : null)}
+                  onMouseDown={(e) => filled && e.stopPropagation()}
+                  onClick={() => filled && openSwap(i)}
+                  style={{ cursor: filled ? 'pointer' : 'default' }}
                 >
-                  {filled ? (guest!.name.length > 10 ? guest!.name.slice(0, 9) + '.' : guest!.name) : i + 1}
-                </text>
+                  <circle
+                    cx={pos.x}
+                    cy={pos.y}
+                    r={seatRadius}
+                    fill={filled ? '#fdf2f8' : '#f9fafb'}
+                    stroke={isHovered ? '#9d174d' : isNeighbor ? '#f472b6' : filled ? '#db2777' : '#d1d5db'}
+                    strokeWidth={isHovered || isNeighbor ? 2.5 : 1.5}
+                  />
+                  <text
+                    x={pos.x}
+                    y={pos.y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize={10}
+                    dx={1}
+                    fill={filled ? '#1f2937' : '#9ca3af'}
+                  >
+                    {filled ? (guest!.name.length > 10 ? guest!.name.slice(0, 9) + '.' : guest!.name) : i + 1}
+                  </text>
+                </g>
+                {filled && (assignment!.locked || isHovered) && (
+                  <SeatLock
+                    x={lockPos.x}
+                    y={lockPos.y}
+                    locked={!!assignment!.locked}
+                    onToggle={() => toggleLock(i)}
+                  />
+                )}
               </g>
             );
           })}
@@ -186,6 +207,17 @@ export function RectTableSvg({ table, assignments, guestMap }: Props) {
           })}
 
         </svg>
+        {swapAssignment && swapPos && (
+          <SwapMenu
+            key={swapSeat}
+            x={swapPos.x}
+            y={swapPos.y + seatRadius + 8}
+            guests={guests}
+            excludeGuestId={swapAssignment.guestId}
+            onSelect={(otherId) => swapWith(swapSeat!, otherId)}
+            onClose={closeSwap}
+          />
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,21 @@ import type { AffinityScore } from '../../types';
 
 export const SCORE_CYCLE: AffinityScore[] = [0, 1, 2, 3, -1, -2, -3];
 
+export const LOCK_OFFSET = 32;
+
+export function outwardPoint(
+  sx: number,
+  sy: number,
+  cx: number,
+  cy: number,
+  dist: number
+): { x: number; y: number } {
+  const dx = sx - cx;
+  const dy = sy - cy;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  return { x: sx + (dx / len) * dist, y: sy + (dy / len) * dist };
+}
+
 export function getLinkColor(score: number): string {
   if (score === 0) return '#9ca3af';
   if (score > 0) return ['', '#86efac', '#22c55e', '#16a34a'][score];

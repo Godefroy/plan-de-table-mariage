@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { FiDownload, FiUpload, FiSettings, FiArrowLeft } from "react-icons/fi";
 import { useAppDispatch, useAppState } from "../../state/AppContext";
 import { exportToJson, importFromJson } from "../../state/persistence";
 import styles from "./ImportExport.module.css";
@@ -47,10 +48,10 @@ export function ImportExport() {
   return (
     <div className={styles.bar}>
       <button onClick={handleExport} className={styles.btn}>
-        Exporter un fichier
+        <FiDownload aria-hidden /> Export
       </button>
       <button onClick={handleImport} className={styles.btn}>
-        Importer un fichier
+        <FiUpload aria-hidden /> Import
       </button>
       <input
         ref={fileRef}
@@ -60,7 +61,15 @@ export function ImportExport() {
         style={{ display: "none" }}
       />
       <button onClick={handleToggleSettings} className={styles.btn}>
-        {onSettings ? "Retour" : "Paramètres"}
+        {onSettings ? (
+          <>
+            <FiArrowLeft aria-hidden /> Retour
+          </>
+        ) : (
+          <>
+            <FiSettings aria-hidden /> Paramètres
+          </>
+        )}
       </button>
     </div>
   );

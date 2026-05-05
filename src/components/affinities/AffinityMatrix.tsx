@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAppState } from '../../state/AppContext';
 import { AffinityCell } from './AffinityCell';
+import { NextPageButton } from '../common/NextPageButton';
 import styles from './AffinityMatrix.module.css';
 
 export function AffinityMatrix() {
@@ -47,6 +48,7 @@ export function AffinityMatrix() {
         <p className={styles.empty}>
           Ajoutez au moins 2 invités pour définir les affinités.
         </p>
+        <NextPageButton to="/tables" label="Tables" />
       </div>
     );
   }
@@ -107,6 +109,7 @@ export function AffinityMatrix() {
           </tbody>
         </table>
       </div>
+      <NextPageButton to="/tables" label="Tables" />
     </div>
   );
 }

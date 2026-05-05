@@ -6,6 +6,7 @@ import { SCORE_CYCLE } from './tableUtils';
 
 export function useTableInteraction(table: Table, assignments: SeatAssignment[], guestMap: Map<string, Guest>) {
   const [hoveredSeat, setHoveredSeat] = useState<number | null>(null);
+  const [swapSeat, setSwapSeat] = useState<number | null>(null);
   const { affinities, couples } = useAppState();
   const dispatch = useAppDispatch();
 
@@ -53,7 +54,7 @@ export function useTableInteraction(table: Table, assignments: SeatAssignment[],
     const [id1, id2] = idA < idB ? [idA, idB] : [idB, idA];
     dispatch({
       type: 'SET_AFFINITY',
-      payload: { guestId1: id1, guestId2: id2, score: SCORE_CYCLE[nextIdx], keepAssignments: true },
+      payload: { guestId1: id1, guestId2: id2, score: SCORE_CYCLE[nextIdx] },
     });
   };
 
@@ -85,6 +86,22 @@ export function useTableInteraction(table: Table, assignments: SeatAssignment[],
       .filter(Boolean) as Array<{ seatIndex: number; weight: number; guestId: string; guest: Guest }>;
   }, [hoveredSeat, hoveredGuestId, table.shape, table.seats, table.customSides, assignmentBySeat, guestMap]);
 
+  const toggleLock = (seatIndex: number) => {
+    dispatch({ type: 'TOGGLE_LOCK', payload: { tableId: table.id, seatIndex } });
+  };
+
+  const openSwap = (seatIndex: number) =>
+    setSwapSeat((current) => (current === seatIndex ? null : seatIndex));
+  const closeSwap = () => setSwapSeat(null);
+
+  const swapWith = (seatIndex: number, otherGuestId: string) => {
+    dispatch({
+      type: 'SWAP_GUESTS',
+      payload: { tableId: table.id, seatIndex, otherGuestId },
+    });
+    setSwapSeat(null);
+  };
+
   return {
     hoveredSeat,
     setHoveredSeat,
@@ -95,5 +112,10 @@ export function useTableInteraction(table: Table, assignments: SeatAssignment[],
     getAffinity,
     handleScoreClick,
     handleScoreContextMenu,
+    swapSeat,
+    openSwap,
+    closeSwap,
+    toggleLock,
+    swapWith,
   };
 }

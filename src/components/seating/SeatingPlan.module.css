@@ -23,6 +23,7 @@
 
 .svgWrapper {
   display: inline-block;
+  position: relative;
 }
 
 .hint {

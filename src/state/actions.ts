@@ -5,7 +5,7 @@ export type AppAction =
   | { type: 'UPDATE_GUEST'; payload: { id: string; name: string } }
   | { type: 'REMOVE_GUEST'; payload: { id: string } }
   | { type: 'SET_GUEST_LANGUAGES'; payload: { id: string; languages: string[] } }
-  | { type: 'SET_AFFINITY'; payload: { guestId1: string; guestId2: string; score: AffinityScore; keepAssignments?: boolean } }
+  | { type: 'SET_AFFINITY'; payload: { guestId1: string; guestId2: string; score: AffinityScore } }
   | { type: 'REMOVE_AFFINITY'; payload: { guestId1: string; guestId2: string } }
   | { type: 'ADD_COUPLE'; payload: { guestId1: string; guestId2: string } }
   | { type: 'REMOVE_COUPLE'; payload: { guestId1: string; guestId2: string } }
@@ -14,6 +14,8 @@ export type AppAction =
   | { type: 'REMOVE_TABLE'; payload: { id: string } }
   | { type: 'SET_ASSIGNMENTS'; payload: SeatAssignment[] }
   | { type: 'CLEAR_ASSIGNMENTS' }
+  | { type: 'TOGGLE_LOCK'; payload: { tableId: string; seatIndex: number } }
+  | { type: 'SWAP_GUESTS'; payload: { tableId: string; seatIndex: number; otherGuestId: string } }
   | { type: 'ADD_LANGUAGE'; payload: Language }
   | { type: 'REMOVE_LANGUAGE'; payload: { name: string } }
   | { type: 'IMPORT_STATE'; payload: AppState };
