@@ -12,12 +12,6 @@
   margin-bottom: 16px;
 }
 
-.headerCentered {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
 .title {
   font-size: 24px;
   font-weight: 700;

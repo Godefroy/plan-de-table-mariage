@@ -1,16 +1,20 @@
 import { useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppState } from "../../state/AppContext";
 import { exportToJson, importFromJson } from "../../state/persistence";
 import styles from "./ImportExport.module.css";
 
-export function ImportExport({
-  onOpenSettings,
-}: {
-  onOpenSettings: () => void;
-}) {
+export function ImportExport() {
   const state = useAppState();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const fileRef = useRef<HTMLInputElement>(null);
+  const onSettings = location.pathname === "/settings";
+
+  const handleToggleSettings = () => {
+    navigate(onSettings ? "/guests" : "/settings");
+  };
 
   const handleExport = () => {
     exportToJson(state);
@@ -43,10 +47,10 @@ export function ImportExport({
   return (
     <div className={styles.bar}>
       <button onClick={handleExport} className={styles.btn}>
-        Exporter JSON
+        Exporter un fichier
       </button>
       <button onClick={handleImport} className={styles.btn}>
-        Importer JSON
+        Importer un fichier
       </button>
       <input
         ref={fileRef}
@@ -55,8 +59,8 @@ export function ImportExport({
         onChange={handleFileChange}
         style={{ display: "none" }}
       />
-      <button onClick={onOpenSettings} className={styles.btn}>
-        Paramètres
+      <button onClick={handleToggleSettings} className={styles.btn}>
+        {onSettings ? "Retour" : "Paramètres"}
       </button>
     </div>
   );

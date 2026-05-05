@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { TabNav } from "./components/common/TabNav";
 import { ImportExport } from "./components/common/ImportExport";
 import { GuestList } from "./components/guests/GuestList";
@@ -38,50 +37,50 @@ function WelcomePage() {
 export default function App() {
  const state = useAppState();
  const hasData = state.guests.length > 0;
-
- const [showSettings, setShowSettings] = useState(false);
- const handleOpenSettings = () => {
-  setShowSettings((prev) => !prev);
- };
+ const location = useLocation();
+ const onSettings = location.pathname === "/settings";
 
  if (!hasData) {
   return (
    <div className={styles.app}>
-    <header className={styles.headerCentered}>
-     <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
-    </header>
-    <Routes>
-     <Route path="/guests" element={<GuestList />} />
-     <Route path="*" element={<WelcomePage />} />
-    </Routes>
+    {!onSettings && (
+     <header className={styles.header}>
+      <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
+      <ImportExport />
+     </header>
+    )}
+    <main className={styles.main}>
+     <Routes>
+      <Route path="/guests" element={<GuestList />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="*" element={<WelcomePage />} />
+     </Routes>
+    </main>
    </div>
   );
  }
 
  return (
   <div className={styles.app}>
-   <header className={styles.header}>
-    <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
-    <ImportExport onOpenSettings={handleOpenSettings} />
-   </header>
-   {showSettings ? (
-    <main className={styles.main}>
-     <SettingsPage />
-    </main>
-   ) : (
+   {!onSettings && (
     <>
+     <header className={styles.header}>
+      <h1 className={styles.title}>Le Plan de Table idéal pour votre Mariage</h1>
+      <ImportExport />
+     </header>
      <TabNav />
-     <main className={styles.main}>
-      <Routes>
-       <Route path="/guests" element={<GuestList />} />
-       <Route path="/affinities" element={<AffinityMatrix />} />
-       <Route path="/tables" element={<TableList />} />
-       <Route path="/seating" element={<SeatingPlan />} />
-       <Route path="*" element={<Navigate to="/guests" replace />} />
-      </Routes>
-     </main>
     </>
    )}
+   <main className={styles.main}>
+    <Routes>
+     <Route path="/guests" element={<GuestList />} />
+     <Route path="/affinities" element={<AffinityMatrix />} />
+     <Route path="/tables" element={<TableList />} />
+     <Route path="/seating" element={<SeatingPlan />} />
+     <Route path="/settings" element={<SettingsPage />} />
+     <Route path="*" element={<Navigate to="/guests" replace />} />
+    </Routes>
+   </main>
   </div>
  );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageHeader } from '../common/PageHeader';
 import { useAppDispatch, useAppState } from '../../state/AppContext';
 import styles from './SettingsPage.module.css';
 
@@ -69,6 +70,8 @@ export function SettingsPage() {
 
   return (
     <div className={styles.container}>
+      <PageHeader title="Paramètres" />
+
       <h2 className={styles.title}>Langues actives</h2>
       <div className={styles.list}>
         {languages.map((lang) => (
